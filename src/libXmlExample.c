@@ -12,7 +12,9 @@
 #include <stdio.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
-
+/*
+ This is my change to the libxmlexample.c file to see if my changes show up in the correct branch 
+*/
 /*
  *To compile this file using gcc you can type.  Alternatively, see the Makefile for include path settings
  *gcc `xml2-config --cflags --libs` -o xmlexample libxml2-example.c
