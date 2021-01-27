@@ -48,3 +48,8 @@ $(BIN)StructListDemo.o: $(SRC)StructListDemo.c
 	$(CC) $(CFLAGS) -I$(INC) -c $(SRC)StructListDemo.c -o $(BIN)StructListDemo.o
 
 ###################################################################################################
+
+test: $(SRC)mainTest.c
+	$(CC) $(CFLAGS) -I$(XML_PATH) $(SRC)mainTest.c -lxml2 -o $(BIN)mainTest
+
+
