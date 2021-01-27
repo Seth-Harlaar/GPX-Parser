@@ -1,5 +1,5 @@
 
-#include "GPXParser.h"
+#include "../include/GPXParser.h"
 
 
 int main( int argc, char * argv[] ){
