@@ -9,7 +9,6 @@ GPXdoc * createGPXdoc(char* fileName){
   GPXdoc * returnDoc = malloc( sizeof(GPXdoc) );
   xmlDoc * doc = NULL;
   xmlNode * headNode = NULL;
-  xmlNode * iterator = NULL;
 
   // get doc and check if null
   doc = xmlReadFile(fileName, NULL, 0);

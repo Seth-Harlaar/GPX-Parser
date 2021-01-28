@@ -1,5 +1,6 @@
 
 #include "../include/GPXParser.h"
+#include "../include/GPXhelpers.h"
 
 int main( int argc, char * argv[] ){
 
