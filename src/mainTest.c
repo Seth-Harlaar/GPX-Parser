@@ -29,8 +29,6 @@ int main( int argc, char * argv[] ){
   // get gpxdoc
   testgpxDoc = createGPXdoc(argv[1]);
 
-  printf("Doc version from parser: %.1f \n", testgpxDoc->version);
-
   // print the doc -- remember to free the temp string used aftewards to avoid memory leaks
   char * tempString;
 

@@ -39,9 +39,9 @@ print_element_names(xmlNode * a_node)
         }
 
         // Uncomment the code below if you want to see the content of every node.
-        // if(cur_node->content != NULL ){
-        //    printf("  content: %s\n", cur_node->content);
-        //}
+        if(cur_node->content != NULL ){
+           printf("  content: %s\n", cur_node->content);
+        }
 
         // Iterate through every attribute of the current node
         xmlAttr *attr;
