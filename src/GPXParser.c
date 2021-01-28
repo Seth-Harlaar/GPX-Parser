@@ -31,7 +31,9 @@ GPXdoc * createGPXdoc(char* fileName){
 
   // list of waypoints -- cannot be null, may be empty
   List * wayPoints = NULL;
-  addWaypoints( wayPoints, headNode );
+  wayPoints = getWaypointsList( headNode );
+  returnDoc->waypoints = wayPoints;
+  
   
 
   // list of routes -- cannot be null, may be empty
@@ -63,12 +65,30 @@ char* GPXdocToString(GPXdoc* doc){
   char * tempString;
 
   // length will be very big
-  // 50 for initial message
-  // 8 for version
-  // etc
-  int length = 58;
+  int length = 0;
+
+  // for the gpxDoc data
+  length += (256 + 8);
+  // add length for creator 
+
+  // for waypoints
+  if( getLength( doc->waypoints ) != 0 ){
+    int wpthLength = calcWptLength( doc->waypoints );
+    length += wpthLength;
+  }
+
   tempString = malloc(sizeof( char ) * length);
 
-  sprintf(tempString, "GPX doc:\n Version: %.1f", doc->version);
+  // add the doc data
+  sprintf(tempString, "GPX doc:\n Version: %.1f\n", doc->version);
+  
+  // add the waypoint data
+  if( getLength( doc->waypoints ) != 0 ){
+    char * tempWptString; 
+    tempWptString = toString( doc->waypoints );
+    sprintf( tempString, "%s", tempWptString );
+  }
+
+
   return tempString;
 }

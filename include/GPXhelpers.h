@@ -11,9 +11,11 @@
 #include <libxml/xmlschemastypes.h>
 #include "LinkedListAPI.h"
 
-List * getWaypointsList( List * wptList, xmlNode * headNode );
+// waypoint functions
+List * getWaypointsList( xmlNode * headNode );
 void addWaypoints( List * wptList, xmlNode * headNode );
 void parseWaypoint( Waypoint * newWpt, xmlNode * curNode );
+int calcWptLength( List * waypoints );
 
 
 

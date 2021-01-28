@@ -19,16 +19,14 @@ int main( int argc, char * argv[] ){
 
   if( testDoc == NULL ){
     printf("Failed\n");
-  } else {
-    printf("Passed\n");
   }
 
-  printf("Doc version straigt from file: %s\n", testDoc->version);
 
   xmlFreeDoc(testDoc);
 
   // get gpxdoc
   testgpxDoc = createGPXdoc(argv[1]);
+  printf("Doc version: %0.2f\n", testgpxDoc->version);
 
   // print the doc -- remember to free the temp string used aftewards to avoid memory leaks
   char * tempString;
@@ -40,5 +38,4 @@ int main( int argc, char * argv[] ){
   free(tempString);
 
   deleteGPXdoc(testgpxDoc);
-
 }

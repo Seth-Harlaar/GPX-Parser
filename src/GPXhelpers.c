@@ -4,9 +4,10 @@
 
 
 // * * * * * * * * * * * * * * * * * * * * 
-// ******** Waypoint Functions ************
-// * * * * * * * * * * * * * * * * * * * * 
+// ******** Waypoint Functions ***********
+// * * * * * * * * * * * * * * * * * * * *
 
+// ******** Project Functions ************
 void deleteWaypoint( void * data ){
   Waypoint * wpt = data;
 
@@ -49,13 +50,15 @@ int compareWaypoints( const void * first, const void * second ){
   return 0;
 }
 
+// ******** Helper Functions ************
+
 // each waypoint must be allocated with its own data, and then put into the linked list
-List * getWaypointsList( List * wptList, xmlNode * headNode ){
+List * getWaypointsList( xmlNode * headNode ){
 
   // initialize the list
   List * returnList = initializeList( waypointToString, deleteWaypoint, compareWaypoints );
   // add all the waypoints to the list
-  addWaypoints( wptList, headNode );
+  addWaypoints( returnList, headNode );
 
   return returnList;
 }
@@ -68,7 +71,7 @@ void addWaypoints( List * wptList, xmlNode * headNode ){
     // check if its a waypoint
     if (iterator->type == XML_ELEMENT_NODE){
       if( strcmp( (char *)(iterator->name), "wpt" ) == 0 ){
-        printf("found a waypoint\n");
+        //printf("found a waypoint\n");
         // the element is a waypoint
         // make a list element, parse the waypoint, add the data to the list element
         Waypoint * newWpt = malloc( sizeof(Waypoint) );
@@ -76,7 +79,7 @@ void addWaypoints( List * wptList, xmlNode * headNode ){
         parseWaypoint( newWpt, iterator );
 
         // add the waypoint to the list
-
+        insertFront( wptList, newWpt );
       }  else {
         // search the children of the node
         addWaypoints( wptList, iterator->children );
@@ -89,7 +92,7 @@ void addWaypoints( List * wptList, xmlNode * headNode ){
 
 // parse each waypoint and get the data out of them
 void parseWaypoint( Waypoint * newWpt, xmlNode * curNode ){
-  printf("  Parsing a waypoint\n");
+  //printf("  Parsing a waypoint\n");
   // fill the waypoint with data
   newWpt->name = malloc( sizeof(char) );
   strcpy(newWpt->name, "");
@@ -98,7 +101,7 @@ void parseWaypoint( Waypoint * newWpt, xmlNode * curNode ){
   xmlAttr * iterPoint = NULL;
 
   // this loop was taken from libxmlexample.c
-  printf("    Searching for attributes of waypoint\n");
+  //printf("    Searching for attributes of waypoint\n");
   for( iterPoint = curNode->properties; iterPoint != NULL; iterPoint = iterPoint->next){
     xmlNode * value = iterPoint->children;
     char * attrName = (char *) iterPoint->name;
@@ -106,10 +109,10 @@ void parseWaypoint( Waypoint * newWpt, xmlNode * curNode ){
 
     // check if it is a lon or lan attribute, store the data if so 
     if( strcmp(attrName, "lon") == 0 ){
-      printf("     ->Found lon\n");
+      //printf("     ->Found lon\n");
       newWpt->longitude = strtod(cont, NULL);
     } else if( strcmp(attrName, "lat") == 0 ){
-      printf("     ->Found lat\n");
+      //printf("     ->Found lat\n");
       newWpt->latitude = strtod(cont, NULL);
     }
   }
@@ -120,22 +123,40 @@ void parseWaypoint( Waypoint * newWpt, xmlNode * curNode ){
   for( childIterNode = curNode->children; childIterNode != NULL; childIterNode = childIterNode->next ){
     // if the child has a name of name, it is the name, get the contents
     if( strcmp( (char *)(childIterNode->name), "name") == 0 ){
-      printf("     ->found a name\n");
+      //printf("     ->found a name\n");
       char * contents;
       // get the contents, realloc, then add the name
       contents = (char *) xmlNodeGetContent( childIterNode );
       if( contents != NULL ){
-        printf("      ->Contents of name: %s\n", contents );
+        //printf("      ->Contents of name: %s\n", contents );
         
-        int length = strlen( contents );
+        int length = strlen( contents ) + 1;
+        printf("length: %d\n", length);
         newWpt->name = realloc( newWpt->name, length );
 
         strcpy( newWpt->name, contents );
-      } else {
-        printf("contents of name null\n");
+      // } else {
+        //printf("contents of name null\n");
       }
     } 
   }
+}
+
+int calcWptLength( List * waypoints ){
+  int length = 0;
+
+  ListIterator listIter = createIterator( waypoints );
+  Waypoint * wpt = nextElement( &listIter );
+  while( wpt != NULL ){
+    length += 16;
+    length += strlen( wpt->name );
+    
+    // also add other data 
+
+    wpt = nextElement( &listIter );
+  }
+
+  return length;
 }
 
 
