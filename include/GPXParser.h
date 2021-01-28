@@ -25,7 +25,7 @@ typedef struct  {
 
     //GPXData value.  We use a C99 flexible array member, which we will discuss in class.
 	//Must not be an empty string
-	char	value[]; 
+	char	value[];
 } GPXData;
 
 typedef struct {

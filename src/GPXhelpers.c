@@ -1,7 +1,11 @@
 #include "../include/GPXParser.h"
 #include "../include/GPXhelpers.h"
 
-// ******** Waypoint Functions *************
+
+// * * * * * * * * * * * * * * * * * * * * 
+// ******** Waypoint Functions ************
+// * * * * * * * * * * * * * * * * * * * * 
+
 void deleteWaypoint( void * data ){
   Waypoint * wpt = data;
 
@@ -25,12 +29,29 @@ char * wayPointToString( void * data ){
   return wptString;
 }
 
+int compareWaypoints( const void * fist, const void * second ){
+  Waypoint * firstWpt = first;
+  Waypoint * secondWpt = second;
+
+  // compare name, lon, lat
+  if( strcmp(firstWpt->name, secondWpt->name) == 0 ){
+    if( firstWpt->longitude == secondWpt->longitude ){
+      if( firstWpt->latitude == secondWpt->latitude ){
+
+        // check all the other data to see if its the same as well
+
+
+        return 1;
+      }
+    }
+  }
+}
 
 // each waypoint must be allocated with its own data, and then put into the linked list
 List * getWaypointsList( List * wptList, xmlNode * headNode ){
 
   // initialize the list
-
+  List * wptList = initializeList();
   // add all the waypoints to the list
   addWaypoints( wptList, headNode );
 
@@ -51,10 +72,8 @@ void addWaypoints( List * wptList, xmlNode * headNode ){
         
         parseWaypoint( newWpt, iterator );
 
-        char * wptTest = wayPointToString( newWpt );
-        printf("New waypoint data:\n%s", wptTest);
+        // add the waypoint to the list
 
-        // then add it to the list
       }  else {
         // search the children of the node
         addWaypoints( wptList, iterator->children );
@@ -112,6 +131,47 @@ void parseWaypoint( Waypoint * newWpt, xmlNode * curNode ){
       } else {
         printf("contents of name null\n");
       }
+    } else {
+      // make another list for other data
+      newWpt->otherData = initializeList();
+      // make space for the new data
+      GPXdata * extraData = malloc( sizeof(GPXdata) );
+      // get the name
+      strcpy( GPXdata->name, (char *)(childIterNode->name));
+      // get the data
     }
   }
+}
+
+
+// * * * * * * * * * * * * * * * * * * * * 
+// ******** gpxData Functions ************
+// * * * * * * * * * * * * * * * * * * * * 
+void deleteGpxData( void * data ){
+  GPXData * gpxData = data;
+
+  free(gpxData);
+}
+
+char * gpxDataToString( void * data ){
+  GPXdata * gpxData = data;
+  int length = 256 + strlen(gpxData->value) + 50;
+
+  char * returnString = malloc( sizeof(char) * length );
+
+  sprintf(returnString, "      gpxData:\n        Name: %d\n        Value: %s\n ", gpxData->name, gpxData->value);
+
+  return returnString;
+}
+
+int compareGpxData( const void * first, const void * second ){
+  GPXdata * firstData = first;
+  GPXdata * secondData = second;
+
+  if( strcmp(first->name, second->name) == 0 ){
+    if( strcmp(fist->value, second->value) == 0 ){
+      return 1;
+    }
+  }
+  return 0;
 }
