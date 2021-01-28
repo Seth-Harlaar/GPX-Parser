@@ -1,4 +1,5 @@
 #include "../include/GPXParser.h"
+#include "../include/GPXhelpers.h"
 #include <stdlib.h>
 
 // make the gpx doc
@@ -30,7 +31,8 @@ GPXdoc * createGPXdoc(char* fileName){
   // get creator -- cannot be null, cannot be an empty string
 
   // list of waypoints -- cannot be null, may be empty
-
+  List * wayPoints = NULL;
+  addWaypoints( wayPoints, headNode );
   
 
   // list of routes -- cannot be null, may be empty
