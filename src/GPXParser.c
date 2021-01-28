@@ -1,146 +1,73 @@
 #include "../include/GPXParser.h"
+#include <stdlib.h>
 
-
+// make the gpx doc
 GPXdoc * createGPXdoc(char* fileName){
-  xmlDoc * doc = NULL;
 
+  // vars 
+  GPXdoc * returnDoc = malloc( sizeof(GPXdoc) );
+  xmlDoc * doc = NULL;
+  xmlNode * headNode = NULL;
+  xmlNode * iterator = NULL;
+
+  // get doc and check if null
   doc = xmlReadFile(fileName, NULL, 0);
 
   if( doc == NULL ){
     printf("A GPX document could not be found with the filename given: %s", fileName);
   }
 
-  return doc;
-}
+  headNode = xmlDocGetRootElement(doc);
+
+  // get namespace -- cannot be an empty string, assume there is only one
 
 
+  // get version -- must be initialized
+  double tempVers = strtod((char *) doc->version, NULL);
 
-char* GPXdocToString(GPXdoc* doc){
-  char * z;
-  return z;
-}
+  returnDoc->version = tempVers;
 
+  // get creator -- cannot be null, cannot be an empty string
 
-void deleteGPXdoc(GPXdoc* doc){
+  // list of waypoints -- cannot be null, may be empty
 
-}
-
-
-//Total number of waypoints in the GPX file
-int getNumWaypoints(const GPXdoc* doc){
-  int z;
-  return z;
-}
-
-//Total number of routes in the GPX file
-int getNumRoutes(const GPXdoc* doc){
-  int z;
-  return z;
-}
-
-//Total number of tracks in the GPX file
-int getNumTracks(const GPXdoc* doc){
-  int z;
-  return z;
-}
-
-//Total number of segments in all tracks in the document
-int getNumSegments(const GPXdoc* doc){
-  int z;
-  return z;
-}
-
-//Total number of GPXData elements in the document
-int getNumGPXData(const GPXdoc* doc){
-  int z;
-  return z;
-}
-
-
-// Function that returns a waypoint with the given name.  If more than one exists, return the first one.  
-// Return NULL if the waypoint does not exist
-Waypoint* getWaypoint(const GPXdoc* doc, char* name){
-  Waypoint * z;
-  return z;
-}
-
-// Function that returns a track with the given name.  If more than one exists, return the first one. 
-// Return NULL if the track does not exist 
-Track* getTrack(const GPXdoc* doc, char* name){
-  Track * z;
-  return z;
-}
-
-// Function that returns a route with the given name.  If more than one exists, return the first one.  
-// Return NULL if the route does not exist
-Route* getRoute(const GPXdoc* doc, char* name){
-  Route * z;
-  return z;
-}
-
-
-
-// GPX data
-void deleteGpxData( void* data){
-
-}
-char* gpxDataToString( void* data){
-  char * z;
-  return z;
-}
-int compareGpxData(const void *first, const void *second){
-  int z;
-  return z;
-}
-
-// Waypoints
-void deleteWaypoint(void* data){
-
-}
-char* waypointToString( void* data){
-  char * z;
-  return z;
-}
-int compareWaypoints(const void *first, const void *second){
-  int z;
-  return z;
-}
-
-// Routes
-void deleteRoute(void* data){
-
-}
-char* routeToString(void* data){
-  char * z;
-  return z;
-}
-int compareRoutes(const void *first, const void *second){
-  int z;
-  return z;
-}
-
-// Track segments
-void deleteTrackSegment(void* data){
-
-}
-char* trackSegmentToString(void* data){
-  char * z;
-  return z;
-}
-int compareTrackSegments(const void *first, const void *second){
-  int z;
-  return z;
-}
-
-// Tracks
-void deleteTrack(void* data){
   
+
+  // list of routes -- cannot be null, may be empty
+
+  // list of tracks -- cannot be null, may be empty
+
+  xmlFreeDoc(doc);
+  xmlCleanupParser();
+
+  return returnDoc;
 }
-char* trackToString(void* data){
-  char * z;
-  return z;
+
+// get rid of the gpx doc
+void deleteGPXdoc(GPXdoc* doc){
+  // destroy all the data in there
+  // free the creator value because its malloced
+  
+  // free all the lists and everything in them
+  
+  // free the struc itself
+  free(doc);
 }
-int compareTracks(const void *first, const void *second){
-  int z;
-  return z;
+
+// turn the gpx doc into a string
+// the code for this function was heavily inspired by the structListDemo.c file
+char* GPXdocToString(GPXdoc* doc){
+  // so far the only items included in the string will be the version because that is the only 
+  // thing that has been implemented so far, and even that is wrong, or is it
+  char * tempString;
+
+  // length will be very big
+  // 50 for initial message
+  // 8 for version
+  // etc
+  int length = 58;
+  tempString = malloc(sizeof( char ) * length);
+
+  sprintf(tempString, "GPX doc:\n Version: %.1f", doc->version);
+  return tempString;
 }
