@@ -117,14 +117,21 @@ void deleteWaypoint( void * data ){
 char * waypointToString( void * data ){
   Waypoint * wpt = data;
 
+  char * otherDataString;
+
   // ? for name, 16 for lon/lat, add in the otherData
-  char * otherDataString = toString( wpt->otherData );
+  if( getLength(wpt->otherData) != 0 ){
+    otherDataString = toString( wpt->otherData );
+  } else {
+    otherDataString = malloc( sizeof(char) * 50);
+    strcpy( otherDataString, "There is no other data for this waypoint\n");
+  }
   
   int length = strlen(otherDataString) + 16 + strlen(wpt->name) + 50;
 
   char * wptString = malloc( sizeof(char) * length );
 
-  sprintf(wptString, "  Waypoint, Name: %s\n  |->Lat: %0.3f, Lon: %0.3f \n%s\n", wpt->name, wpt->latitude, wpt->longitude, otherDataString);
+  sprintf(wptString, "  Waypoint, Name: %s\n    Lat: %0.3f, Lon: %0.3f \n%s", wpt->name, wpt->latitude, wpt->longitude, otherDataString);
 
   free(otherDataString);
 
@@ -142,6 +149,7 @@ int compareWaypoints( const void * first, const void * second ){
       if( firstWpt->latitude == secondWpt->latitude ){
 
         // check all the other data to see if its the same as well
+        // **** remember to check all the data ****
         return 1;
       }
     }
@@ -167,7 +175,7 @@ char * gpxDataToString( void * data ){
 
   char * returnString = malloc( sizeof(char) * length );
 
-  sprintf(returnString, "    |->gpxData, Name: %s, Value: %s ", gpxData->name, gpxData->value);
+  sprintf(returnString, "    |->gpxData, Name: %s\n         Value: %s ", gpxData->name, gpxData->value);
 
   return returnString;
 }
@@ -188,3 +196,56 @@ int compareGpxData( const void * first, const void * second ){
 // * * * * * * * * * * * * * * * * * * * * 
 // ********  Route Functions  ************
 // * * * * * * * * * * * * * * * * * * * *
+void deleteRoute( void * data ){
+  Route * route = data;
+
+  free(route->name);
+  freeList(route->waypoints);
+  freeList(route->otherData);
+  free(route);
+}
+
+char* routeToString( void* data ){
+  Route * route = data;
+
+  char * tempWptString;
+  char * tempOtherDataString;
+  char * returnString;
+  int length = 0;
+
+  // get string for waypoints
+  if( getLength(route->waypoints) != 0 ){
+    tempWptString = toString(route->waypoints);
+  
+  } else {
+    tempWptString = malloc( sizeof(char) * 50 );
+    strcpy(tempWptString, "There are no waypoints for this route");
+  }
+  length += ( strlen(tempWptString) + 1 );
+
+
+  // get string for other data
+  if( getLength(route->otherData) != 0 ){
+    tempOtherDataString = toString(route->otherData);
+  
+  } else {
+    tempOtherDataString = malloc( sizeof(char) * 50 );
+    strcpy( tempOtherDataString, "There is no other data for this route ");
+  }
+  length += ( strlen(tempOtherDataString) + 1 );
+
+  length += ( 50 + strlen(route->name) );
+
+  returnString = malloc( sizeof(char) * length );
+
+  sprintf(returnString, "Route, name: %s\n  Waypoints:\n%s Other Data:\n%s", route->name, tempWptString, tempOtherDataString );
+
+  free(tempOtherDataString);
+  free(tempWptString);
+
+  return returnString;
+}
+
+int compareRoutes(const void *first, const void *second){
+  return 1;
+}
