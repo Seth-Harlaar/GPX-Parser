@@ -12,7 +12,7 @@ void deleteWaypoint( void * data ){
   Waypoint * wpt = data;
 
   free(wpt->name);
-  free(wpt->otherData);
+  freeList(wpt->otherData);
   free(wpt);
 }
 
@@ -28,6 +28,8 @@ char * waypointToString( void * data ){
   char * wptString = malloc( sizeof(char) * length );
 
   sprintf(wptString, "  Waypoint, Name: %s\n  |->Lat: %0.3f, Lon: %0.3f \n%s\n", wpt->name, wpt->latitude, wpt->longitude, otherDataString);
+
+  free(otherDataString);
 
   return wptString;
 }
