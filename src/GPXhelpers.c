@@ -7,53 +7,6 @@
 // ******** Waypoint Functions ***********
 // * * * * * * * * * * * * * * * * * * * *
 
-// ******** Project Functions ************
-void deleteWaypoint( void * data ){
-  Waypoint * wpt = data;
-
-  free(wpt->name);
-  freeList(wpt->otherData);
-  free(wpt);
-}
-
-// return a string displaying the waypoint nicely
-char * waypointToString( void * data ){
-  Waypoint * wpt = data;
-
-  // ? for name, 16 for lon/lat, add in the otherData
-  char * otherDataString = toString( wpt->otherData );
-  
-  int length = strlen(otherDataString) + 16 + strlen(wpt->name) + 50;
-
-  char * wptString = malloc( sizeof(char) * length );
-
-  sprintf(wptString, "  Waypoint, Name: %s\n  |->Lat: %0.3f, Lon: %0.3f \n%s\n", wpt->name, wpt->latitude, wpt->longitude, otherDataString);
-
-  free(otherDataString);
-
-  return wptString;
-}
-
-int compareWaypoints( const void * first, const void * second ){
-
-  const Waypoint * firstWpt = first;
-  const Waypoint * secondWpt = second;
-
-  // compare name, lon, lat
-  if( strcmp(firstWpt->name, secondWpt->name) == 0 ){
-    if( firstWpt->longitude == secondWpt->longitude ){
-      if( firstWpt->latitude == secondWpt->latitude ){
-
-        // check all the other data to see if its the same as well
-        return 1;
-      }
-    }
-  }
-  return 0;
-}
-
-// ******** Helper Functions ************
-
 // each waypoint must be allocated with its own data, and then put into the linked list
 List * getWaypointsList( xmlNode * headNode ){
 
@@ -155,33 +108,3 @@ void parseWaypoint( Waypoint * newWpt, xmlNode * curNode ){
 // ******** gpxData Functions ************
 // * * * * * * * * * * * * * * * * * * * * 
 
-// project functions
-
-void deleteGpxData( void * data ){
-  GPXData * gpxData = data;
-
-  free(gpxData);
-}
-
-char * gpxDataToString( void * data ){
-  GPXData * gpxData = data;
-  int length = 50 + 256 + strlen(gpxData->value) + 1;
-
-  char * returnString = malloc( sizeof(char) * length );
-
-  sprintf(returnString, "    |->gpxData, Name: %s, Value: %s ", gpxData->name, gpxData->value);
-
-  return returnString;
-}
-
-int compareGpxData( const void * first, const void * second ){
-  const GPXData * firstData = first;
-  const GPXData * secondData = second;
-
-  if( strcmp(firstData->name, secondData->name) == 0 ){
-    if( strcmp(firstData->value, secondData->value) == 0 ){
-      return 1;
-    }
-  }
-  return 0;
-}
