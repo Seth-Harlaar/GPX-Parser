@@ -51,8 +51,9 @@ void deleteGPXdoc(GPXdoc* doc){
   // destroy all the data in there
   // free the creator value because its malloced
   
-  // free all the lists and everything in them
-  
+  // free the different lists
+  freeList( doc->waypoints );
+
   // free the struc itself
   free(doc);
 }
@@ -63,32 +64,30 @@ char* GPXdocToString(GPXdoc* doc){
   // so far the only items included in the string will be the version because that is the only 
   // thing that has been implemented so far, and even that is wrong, or is it
   char * tempString;
+  char * tempWptString; 
 
   // length will be very big
   int length = 0;
 
   // for the gpxDoc data
-  length += (256 + 8);
+  length += (256 + 8 + 1);
   // add length for creator 
 
-  // for waypoints
+
   if( getLength( doc->waypoints ) != 0 ){
-    int wpthLength = calcWptLength( doc->waypoints );
-    length += wpthLength;
+
+    tempWptString = toString( doc->waypoints );
   }
+
+  length += strlen( tempWptString );
 
   tempString = malloc(sizeof( char ) * length);
 
-  // add the doc data
-  sprintf(tempString, "GPX doc:\n Version: %.1f\n", doc->version);
-  
-  // add the waypoint data
-  if( getLength( doc->waypoints ) != 0 ){
-    char * tempWptString; 
-    tempWptString = toString( doc->waypoints );
-    sprintf( tempString, "%s", tempWptString );
-  }
+  // add the data
+  sprintf(tempString, "GPX doc:\n Version: %.1f\n %s\n", doc->version, tempWptString);  
 
+  // free strings used
+  free( tempWptString );
 
   return tempString;
 }

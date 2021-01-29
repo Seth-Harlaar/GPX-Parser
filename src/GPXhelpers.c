@@ -12,22 +12,22 @@ void deleteWaypoint( void * data ){
   Waypoint * wpt = data;
 
   free(wpt->name);
-  // free the list of other data
+  free(wpt->otherData);
   free(wpt);
 }
 
 // return a string displaying the waypoint nicely
-char * waypointToString( void* data){
-  
+char * waypointToString( void * data ){
   Waypoint * wpt = data;
 
   // ? for name, 16 for lon/lat, add in the otherData
-  int length = 16 + strlen(wpt->name);
+  char * otherDataString = toString( wpt->otherData );
   
+  int length = strlen(otherDataString) + 16 + strlen(wpt->name) + 50;
+
   char * wptString = malloc( sizeof(char) * length );
 
-  // add in the printing of other data later
-  sprintf(wptString, "  Waypoint, Name: %s\n    Lat: %0.3f, Lon: %0.3f \n", wpt->name, wpt->latitude, wpt->longitude);
+  sprintf(wptString, "  Waypoint, Name: %s\n  |->Lat: %0.3f, Lon: %0.3f \n%s\n", wpt->name, wpt->latitude, wpt->longitude, otherDataString);
 
   return wptString;
 }
@@ -76,6 +76,8 @@ void addWaypoints( List * wptList, xmlNode * headNode ){
         // make a list element, parse the waypoint, add the data to the list element
         Waypoint * newWpt = malloc( sizeof(Waypoint) );
         
+        newWpt->otherData = initializeList(gpxDataToString, deleteGpxData, compareGpxData );
+
         parseWaypoint( newWpt, iterator );
 
         // add the waypoint to the list
@@ -84,7 +86,6 @@ void addWaypoints( List * wptList, xmlNode * headNode ){
         // search the children of the node
         addWaypoints( wptList, iterator->children );
       }
-
     }    
   }
 }
@@ -92,7 +93,6 @@ void addWaypoints( List * wptList, xmlNode * headNode ){
 
 // parse each waypoint and get the data out of them
 void parseWaypoint( Waypoint * newWpt, xmlNode * curNode ){
-  //printf("  Parsing a waypoint\n");
   // fill the waypoint with data
   newWpt->name = malloc( sizeof(char) );
   strcpy(newWpt->name, "");
@@ -101,18 +101,17 @@ void parseWaypoint( Waypoint * newWpt, xmlNode * curNode ){
   xmlAttr * iterPoint = NULL;
 
   // this loop was taken from libxmlexample.c
-  //printf("    Searching for attributes of waypoint\n");
   for( iterPoint = curNode->properties; iterPoint != NULL; iterPoint = iterPoint->next){
     xmlNode * value = iterPoint->children;
+    
     char * attrName = (char *) iterPoint->name;
     char * cont  = (char *)(value->content);
 
     // check if it is a lon or lan attribute, store the data if so 
     if( strcmp(attrName, "lon") == 0 ){
-      //printf("     ->Found lon\n");
       newWpt->longitude = strtod(cont, NULL);
+
     } else if( strcmp(attrName, "lat") == 0 ){
-      //printf("     ->Found lat\n");
       newWpt->latitude = strtod(cont, NULL);
     }
   }
@@ -122,48 +121,40 @@ void parseWaypoint( Waypoint * newWpt, xmlNode * curNode ){
 
   for( childIterNode = curNode->children; childIterNode != NULL; childIterNode = childIterNode->next ){
     // if the child has a name of name, it is the name, get the contents
+    char * contents = NULL;
+    
     if( strcmp( (char *)(childIterNode->name), "name") == 0 ){
-      //printf("     ->found a name\n");
-      char * contents;
       // get the contents, realloc, then add the name
       contents = (char *) xmlNodeGetContent( childIterNode );
-      if( contents != NULL ){
-        //printf("      ->Contents of name: %s\n", contents );
-        
-        int length = strlen( contents ) + 1;
-        printf("length: %d\n", length);
-        newWpt->name = realloc( newWpt->name, length );
-
-        strcpy( newWpt->name, contents );
-      // } else {
-        //printf("contents of name null\n");
-      }
-    } 
-  }
-}
-
-int calcWptLength( List * waypoints ){
-  int length = 0;
-
-  ListIterator listIter = createIterator( waypoints );
-  Waypoint * wpt = nextElement( &listIter );
-  while( wpt != NULL ){
-    length += 16;
-    length += strlen( wpt->name );
     
-    // also add other data 
+      int length = strlen( contents ) + 1;
+      newWpt->name = realloc( newWpt->name, length );
 
-    wpt = nextElement( &listIter );
+      strcpy( newWpt->name, contents );
+    
+    } else {
+      // malloc space for the data, fill it
+      contents = (char *) xmlNodeGetContent( childIterNode );
+
+      GPXData * newData = malloc( sizeof(GPXData) + strlen(contents) + 1 );
+      
+      strcpy( newData->name, (char *)( childIterNode->name) );
+      strcpy( newData->value, contents );
+      
+      // add the data to the otherData list
+      insertFront( newWpt->otherData, newData );
+    }
+    xmlFree(contents);
   }
-
-  return length;
 }
 
 
 // * * * * * * * * * * * * * * * * * * * * 
 // ******** gpxData Functions ************
 // * * * * * * * * * * * * * * * * * * * * 
-/*
+
+// project functions
+
 void deleteGpxData( void * data ){
   GPXData * gpxData = data;
 
@@ -171,25 +162,24 @@ void deleteGpxData( void * data ){
 }
 
 char * gpxDataToString( void * data ){
-  GPXdata * gpxData = data;
-  int length = 256 + strlen(gpxData->value) + 50;
+  GPXData * gpxData = data;
+  int length = 50 + 256 + strlen(gpxData->value) + 1;
 
   char * returnString = malloc( sizeof(char) * length );
 
-  sprintf(returnString, "      gpxData:\n        Name: %d\n        Value: %s\n ", gpxData->name, gpxData->value);
+  sprintf(returnString, "    |->gpxData, Name: %s, Value: %s ", gpxData->name, gpxData->value);
 
   return returnString;
 }
 
 int compareGpxData( const void * first, const void * second ){
-  GPXdata * firstData = first;
-  GPXdata * secondData = second;
+  const GPXData * firstData = first;
+  const GPXData * secondData = second;
 
-  if( strcmp(first->name, second->name) == 0 ){
-    if( strcmp(fist->value, second->value) == 0 ){
+  if( strcmp(firstData->name, secondData->name) == 0 ){
+    if( strcmp(firstData->value, secondData->value) == 0 ){
       return 1;
     }
   }
   return 0;
 }
-*/

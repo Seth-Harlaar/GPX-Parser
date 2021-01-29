@@ -1,4 +1,3 @@
-
 #include "../include/GPXParser.h"
 #include "../include/GPXhelpers.h"
 
@@ -12,17 +11,7 @@ int main( int argc, char * argv[] ){
   printf("This is the main file\n");
   
   // start by setting up the simple xml parser
-  xmlDoc * testDoc = NULL;
   GPXdoc * testgpxDoc = NULL;
-
-  testDoc = xmlReadFile(argv[1], NULL, 0);
-
-  if( testDoc == NULL ){
-    printf("Failed\n");
-  }
-
-
-  xmlFreeDoc(testDoc);
 
   // get gpxdoc
   testgpxDoc = createGPXdoc(argv[1]);
@@ -36,6 +25,5 @@ int main( int argc, char * argv[] ){
   printf("%s\n", tempString);
 
   free(tempString);
-
   deleteGPXdoc(testgpxDoc);
 }

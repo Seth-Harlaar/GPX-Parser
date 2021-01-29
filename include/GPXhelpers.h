@@ -15,7 +15,8 @@
 List * getWaypointsList( xmlNode * headNode );
 void addWaypoints( List * wptList, xmlNode * headNode );
 void parseWaypoint( Waypoint * newWpt, xmlNode * curNode );
-int calcWptLength( List * waypoints );
+int calcWptsLength( List * waypoints );
+int calcWptLength( Waypoint * wpt );
 
 
 
