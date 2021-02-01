@@ -124,7 +124,7 @@ char * waypointToString( void * data ){
     otherDataString = toString( wpt->otherData );
   } else {
     otherDataString = malloc( sizeof(char) * 50);
-    strcpy( otherDataString, "There is no other data for this waypoint\n");
+    strcpy( otherDataString, "\n    |->There is no other data for this waypoint\n");
   }
   
   int length = strlen(otherDataString) + 16 + strlen(wpt->name) + 50;

@@ -77,29 +77,30 @@ void parseWaypoint( Waypoint * newWpt, xmlNode * curNode ){
   for( childIterNode = curNode->children; childIterNode != NULL; childIterNode = childIterNode->next ){
     // if the child has a name of name, it is the name, get the contents
     char * contents = NULL;
-    
-    if( strcmp( (char *)(childIterNode->name), "name") == 0 ){
-      // get the contents, realloc, then add the name
-      contents = (char *) xmlNodeGetContent( childIterNode );
-    
-      int length = strlen( contents ) + 1;
-      newWpt->name = realloc( newWpt->name, length );
-
-      strcpy( newWpt->name, contents );
-    
-    } else {
-      // malloc space for the data, fill it
-      contents = (char *) xmlNodeGetContent( childIterNode );
-
-      GPXData * newData = malloc( sizeof(GPXData) + strlen(contents) + 1 );
+    if (childIterNode->type == XML_ELEMENT_NODE){
+      if( strcmp( (char *)(childIterNode->name), "name") == 0 ){
+        // get the contents, realloc, then add the name
+        contents = (char *) xmlNodeGetContent( childIterNode );
       
-      strcpy( newData->name, (char *)( childIterNode->name) );
-      strcpy( newData->value, contents );
+        int length = strlen( contents ) + 1;
+        newWpt->name = realloc( newWpt->name, length );
+
+        strcpy( newWpt->name, contents );
       
-      // add the data to the otherData list
-      insertFront( newWpt->otherData, newData );
+      } else {
+        // malloc space for the data, fill it
+        contents = (char *) xmlNodeGetContent( childIterNode );
+
+        GPXData * newData = malloc( sizeof(GPXData) + strlen(contents) + 1 );
+        
+        strcpy( newData->name, (char *)( childIterNode->name) );
+        strcpy( newData->value, contents );
+        
+        // add the data to the otherData list
+        insertFront( newWpt->otherData, newData );
+      }
+      xmlFree(contents);
     }
-    xmlFree(contents);
   }
 }
 
