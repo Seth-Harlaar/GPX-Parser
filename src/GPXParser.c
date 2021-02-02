@@ -249,7 +249,7 @@ char* routeToString( void* data ){
 
   returnString = malloc( sizeof(char) * length );
 
-  sprintf(returnString, "Route, name: %s\n  Waypoints:\n%s  Other Data:\n%s", route->name, tempWptString, tempOtherDataString );
+  sprintf(returnString, "Route, name: %s\n  Waypoints:\n%s  \nOther Data:\n%s", route->name, tempWptString, tempOtherDataString );
 
   free(tempOtherDataString);
   free(tempWptString);

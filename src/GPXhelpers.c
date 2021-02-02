@@ -153,13 +153,12 @@ Route * parseRoute( xmlNode * curNode ){
   returnRoute->name = malloc( sizeof(char) );
   strcpy( returnRoute->name, "" );
 
-  returnRoute->waypoints = initializeList( waypointToString, deleteWaypoint, compareWaypoints );
-  returnRoute->otherData = initializeList( gpxDataToString, deleteGpxData, compareGpxData );
-
   // get the waypoints data out
   returnRoute->waypoints = getWaypointsList( curNode, 1 );
 
   // get the otherData out
+  returnRoute->otherData = initializeList( gpxDataToString, deleteGpxData, compareGpxData );
+
   xmlNode * childIterNode;
   char * contents;
 
