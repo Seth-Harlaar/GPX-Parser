@@ -37,10 +37,13 @@ GPXdoc * createGPXdoc(char* fileName){
 
   // list of waypoints -- cannot be null, may be empty
   List * wayPoints = NULL;
-  wayPoints = getWaypointsList( headNode );
+  wayPoints = getWaypointsList( headNode, 0 );
   returnDoc->waypoints = wayPoints;
 
   // list of routes -- cannot be null, may be empty
+  List * routes = NULL;
+  routes = getRoutesList( headNode );
+  returnDoc->routes = routes;
 
   // list of tracks -- cannot be null, may be empty
 
@@ -57,6 +60,7 @@ void deleteGPXdoc(GPXdoc* doc){
   
   // free the different lists
   freeList( doc->waypoints );
+  freeList( doc->routes );
 
   // free the struc itself
   free(doc);
@@ -65,10 +69,9 @@ void deleteGPXdoc(GPXdoc* doc){
 // turn the gpx doc into a string
 // the code for this function was heavily inspired by the structListDemo.c file
 char* GPXdocToString(GPXdoc* doc){
-  // so far the only items included in the string will be the version because that is the only 
-  // thing that has been implemented so far, and even that is wrong, or is it
   char * tempString;
   char * tempWptString;
+  char * tempRouteString;
 
   // length will be very big
   int length = 0;
@@ -81,20 +84,28 @@ char* GPXdocToString(GPXdoc* doc){
   if( getLength( doc->waypoints ) != 0 ){
     tempWptString = toString( doc->waypoints );
   } else {
-    tempWptString = malloc(sizeof(50));
-    strcpy(tempWptString, "No Waypoints in this file\n");
+    tempWptString = malloc(sizeof(char) * 50);
+    strcpy( tempWptString, "No Waypoints in this file\n" );
   }
   
   length += strlen( tempWptString );
 
+  if( getLength( doc->routes) != 0 ){
+    tempRouteString = toString( doc->routes );
+  } else {
+    tempRouteString = malloc(sizeof(char) * 50);
+    strcpy( tempRouteString, "There are no routes in this file.\n");
+  }
+  length += strlen( tempRouteString );
 
   tempString = malloc(sizeof( char ) * length);
 
   // add the data
-  sprintf(tempString, "GPX doc:\n Version: %.1f\n %s\n", doc->version, tempWptString);
+  sprintf(tempString, "GPX doc:\n Version: %.1f\n %s\n%s\n", doc->version, tempWptString, tempRouteString );
 
   // free strings used
   free( tempWptString );
+  free( tempRouteString );
 
   return tempString;
 }
@@ -219,7 +230,7 @@ char* routeToString( void* data ){
   
   } else {
     tempWptString = malloc( sizeof(char) * 50 );
-    strcpy(tempWptString, "There are no waypoints for this route");
+    strcpy(tempWptString, "    There are no waypoints for this route\n");
   }
   length += ( strlen(tempWptString) + 1 );
 
@@ -230,7 +241,7 @@ char* routeToString( void* data ){
   
   } else {
     tempOtherDataString = malloc( sizeof(char) * 50 );
-    strcpy( tempOtherDataString, "There is no other data for this route ");
+    strcpy( tempOtherDataString, "    There is no other data for this route \n");
   }
   length += ( strlen(tempOtherDataString) + 1 );
 
@@ -238,7 +249,7 @@ char* routeToString( void* data ){
 
   returnString = malloc( sizeof(char) * length );
 
-  sprintf(returnString, "Route, name: %s\n  Waypoints:\n%s Other Data:\n%s", route->name, tempWptString, tempOtherDataString );
+  sprintf(returnString, "Route, name: %s\n  Waypoints:\n%s  Other Data:\n%s", route->name, tempWptString, tempOtherDataString );
 
   free(tempOtherDataString);
   free(tempWptString);
@@ -247,5 +258,6 @@ char* routeToString( void* data ){
 }
 
 int compareRoutes(const void *first, const void *second){
+  // actually add some comparison
   return 1;
 }

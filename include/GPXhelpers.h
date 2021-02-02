@@ -12,12 +12,15 @@
 #include "LinkedListAPI.h"
 
 // waypoint functions
-List * getWaypointsList( xmlNode * headNode );
-void addWaypoints( List * wptList, xmlNode * headNode );
+List * getWaypointsList( xmlNode * headNode, int mode );
+void addWaypoints( List * wptList, xmlNode * headNode, int mode );
 void parseWaypoint( Waypoint * newWpt, xmlNode * curNode );
 int calcWptsLength( List * waypoints );
 int calcWptLength( Waypoint * wpt );
 
+List * getRoutesList( xmlNode * headNode );
+void addRoutes( List * routeList, xmlNode * headNode );
+Route * parseRoute( xmlNode * curNode );
 
 
 
