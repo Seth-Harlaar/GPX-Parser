@@ -15,12 +15,18 @@
 List * getWaypointsList( xmlNode * headNode, int mode );
 void addWaypoints( List * wptList, xmlNode * headNode, int mode );
 void parseWaypoint( Waypoint * newWpt, xmlNode * curNode );
-int calcWptsLength( List * waypoints );
-int calcWptLength( Waypoint * wpt );
 
 List * getRoutesList( xmlNode * headNode );
 void addRoutes( List * routeList, xmlNode * headNode );
 Route * parseRoute( xmlNode * curNode );
+
+List * getTrackSegList( xmlNode * headNode );
+void addTrackSegments( List * trackSegList, xmlNode * headNode );
+TrackSegment * parseTrackSeg( xmlNode * curNode );
+
+List * getTracksList( xmlNode * headNode );
+void addTracks( List * trackList, xmlNode * headNode );
+Track * parseTrack( xmlNode * curNode );
 
 
 

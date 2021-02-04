@@ -46,6 +46,9 @@ GPXdoc * createGPXdoc(char* fileName){
   returnDoc->routes = routes;
 
   // list of tracks -- cannot be null, may be empty
+  List * tracks = NULL;
+  tracks = getTracksList( headNode );
+  returnDoc->tracks = tracks;
 
   xmlFreeDoc(doc);
   xmlCleanupParser();
@@ -61,6 +64,7 @@ void deleteGPXdoc(GPXdoc* doc){
   // free the different lists
   freeList( doc->waypoints );
   freeList( doc->routes );
+  freeList( doc->tracks );
 
   // free the struc itself
   free(doc);
@@ -72,6 +76,7 @@ char* GPXdocToString(GPXdoc* doc){
   char * tempString;
   char * tempWptString;
   char * tempRouteString;
+  char * tempTrackString;
 
   // length will be very big
   int length = 0;
@@ -84,8 +89,8 @@ char* GPXdocToString(GPXdoc* doc){
   if( getLength( doc->waypoints ) != 0 ){
     tempWptString = toString( doc->waypoints );
   } else {
-    tempWptString = malloc(sizeof(char) * 50);
-    strcpy( tempWptString, "No Waypoints in this file\n" );
+    tempWptString = malloc( sizeof(char) * 50 );
+    strcpy( tempWptString, "There are no waypoints in this file\n" );
   }
   
   length += strlen( tempWptString );
@@ -93,19 +98,28 @@ char* GPXdocToString(GPXdoc* doc){
   if( getLength( doc->routes) != 0 ){
     tempRouteString = toString( doc->routes );
   } else {
-    tempRouteString = malloc(sizeof(char) * 50);
+    tempRouteString = malloc( sizeof(char) * 50 );
     strcpy( tempRouteString, "There are no routes in this file.\n");
   }
   length += strlen( tempRouteString );
 
-  tempString = malloc(sizeof( char ) * length);
+  if( getLength( doc->tracks) != 0 ){
+    tempTrackString = toString( doc->tracks );
+  } else {
+    tempTrackString = malloc( sizeof(char) * 50);
+    strcpy( tempTrackString, "There are no tracks in this file.\n");
+  }
+  length += strlen( tempTrackString );
+
+  tempString = malloc( sizeof( char ) * length );
 
   // add the data
-  sprintf(tempString, "GPX doc:\n Version: %.1f\n %s\n%s\n", doc->version, tempWptString, tempRouteString );
+  sprintf( tempString, "GPX doc:\n Version: %.1f\n %s\n%s\n%s\n", doc->version, tempWptString, tempRouteString, tempTrackString );
 
   // free strings used
   free( tempWptString );
   free( tempRouteString );
+  free( tempTrackString );
 
   return tempString;
 }
@@ -135,7 +149,7 @@ char * waypointToString( void * data ){
     otherDataString = toString( wpt->otherData );
   } else {
     otherDataString = malloc( sizeof(char) * 50);
-    strcpy( otherDataString, "\n    |->There is no other data for this waypoint\n");
+    strcpy( otherDataString, "");
   }
   
   int length = strlen(otherDataString) + 16 + strlen(wpt->name) + 50;
@@ -158,9 +172,7 @@ int compareWaypoints( const void * first, const void * second ){
   if( strcmp(firstWpt->name, secondWpt->name) == 0 ){
     if( firstWpt->longitude == secondWpt->longitude ){
       if( firstWpt->latitude == secondWpt->latitude ){
-
-        // check all the other data to see if its the same as well
-        // **** remember to check all the data ****
+        
         return 1;
       }
     }
@@ -258,6 +270,105 @@ char* routeToString( void* data ){
 }
 
 int compareRoutes(const void *first, const void *second){
-  // actually add some comparison
+
+  return 0;
+}
+
+
+// * * * * * * * * * * * * * * * * * * * * 
+// ********  Track Functions  ************
+// * * * * * * * * * * * * * * * * * * * *
+void deleteTrack( void * data ){
+  Track * track = data;
+
+  free( track->name );
+  freeList( track->segments );
+  freeList( track->otherData );
+  free( track );
+}
+
+char* trackToString( void * data ){
+  Track * track = data;
+  
+  int length = 0;
+
+  char * tempSegmentString;
+  char * tempOtherString;
+  char * returnString;
+
+  if( getLength( track->otherData ) != 0 ){
+    tempOtherString = toString( track->otherData );
+  } else {
+    tempOtherString = malloc( sizeof(char) * 50 );
+    strcpy( tempOtherString, "  There is no other data for this file\n");
+  }
+  length += strlen( tempOtherString ) + 1;
+
+  if( getLength( track->segments) != 0 ){
+    tempSegmentString = toString( track->segments );
+  } else {
+    tempSegmentString = malloc( sizeof(char) * 50 );
+    strcpy( tempSegmentString, "  There are no segments for this file\n");
+  }
+  length += strlen( tempSegmentString ) + 1;
+ 
+  length += strlen( track->name ) + 1;
+
+  length += 50;
+
+  returnString = malloc( sizeof(char) * length );
+
+  sprintf( returnString, "Track, name: %s\n  Segments: %s\n Other data: %s\n", track->name, tempSegmentString, tempOtherString );
+
+  free( tempOtherString );
+  free( tempSegmentString );
+
+  return returnString;
+}
+
+int compareTracks( const void *first, const void *second ){
+  // compare the stuff
+  return 0;
+}
+
+
+// * * * * * * * * * * * * * * * * * * * * 
+// *****  Track Segment Functions  *******
+// * * * * * * * * * * * * * * * * * * * *
+
+void deleteTrackSegment(void* data){
+  TrackSegment * trackSeg = data;
+  freeList( trackSeg->waypoints );
+  free( trackSeg );
+}
+
+char* trackSegmentToString(void* data){
+  char * tempWptString;
+  char * returnString;
+
+  int length = 0;
+
+  TrackSegment * trackSeg = data;
+
+  if( getLength( trackSeg->waypoints ) != 0 ){
+    tempWptString = toString( trackSeg->waypoints );
+  } else {
+    tempWptString = malloc( sizeof(char) * 50 );
+    strcpy( tempWptString, "  There are no waypoints for this track segment\n");
+  }
+  length += strlen( tempWptString ) + 1;
+  length += 50;
+
+  returnString = malloc( sizeof(char) * length );
+
+  sprintf( returnString, "Track Segment\n  Waypoints:%s", tempWptString );
+
+  free( tempWptString );
+
+  return returnString;
+}
+
+int compareTrackSegments(const void *first, const void *second){
+
   return 1;
 }

@@ -9,7 +9,6 @@
 
 // start the list, run the function to add the waypoints
 List * getWaypointsList( xmlNode * headNode, int mode ){
-
   // initialize the list
   List * returnList = initializeList( waypointToString, deleteWaypoint, compareWaypoints );
   // add all the waypoints to the list
@@ -44,6 +43,15 @@ void addWaypoints( List * wptList, xmlNode * headNode, int mode ){
 
         insertFront( wptList, newWpt );
         
+      } else if( strcmp((char *)(iterator->name), "trkpt") == 0 && mode == 2 ){
+        Waypoint * newWpt = malloc( sizeof(Waypoint) );
+
+        newWpt->otherData = initializeList(gpxDataToString, deleteGpxData, compareGpxData );
+
+        parseWaypoint( newWpt, iterator );
+
+        insertFront( wptList, newWpt );
+      
       } else {
         // search the children of the node
         addWaypoints( wptList, iterator->children, mode );
@@ -56,7 +64,7 @@ void addWaypoints( List * wptList, xmlNode * headNode, int mode ){
 // parse each waypoint and get the data out of them + their children
 void parseWaypoint( Waypoint * newWpt, xmlNode * curNode ){
   // fill the waypoint with data
-  newWpt->name = malloc( sizeof(char) );
+  newWpt->name = malloc( sizeof(char) * 2 );
   strcpy(newWpt->name, "");
 
   // search the attributes of the waypoint
@@ -150,7 +158,7 @@ Route * parseRoute( xmlNode * curNode ){
   // malloc new route - malloc for name, initialize list for otherData and waypoints
   Route * returnRoute = malloc( sizeof(Route) );
 
-  returnRoute->name = malloc( sizeof(char) );
+  returnRoute->name = malloc( sizeof(char) *2);
   strcpy( returnRoute->name, "" );
 
   // get the waypoints data out
@@ -191,4 +199,121 @@ Route * parseRoute( xmlNode * curNode ){
 
   // return route
   return returnRoute;
+}
+
+// * * * * * * * * * * * * * * * * * * * * 
+// ******  TrackSegment Functions  *******
+// * * * * * * * * * * * * * * * * * * * *
+
+List * getTrackSegList( xmlNode * headNode ){
+  List * trackSegList = initializeList( trackSegmentToString, deleteTrackSegment, compareTrackSegments );
+
+  addTrackSegments( trackSegList, headNode );
+
+  return trackSegList;
+}
+
+// search through and find all the track segments
+void addTrackSegments( List * trackSegList, xmlNode * headNode ){
+
+  xmlNode * iterator;
+
+  for( iterator = headNode; iterator != NULL; iterator = iterator->next ){
+    if (iterator->type == XML_ELEMENT_NODE){
+      if( strcmp((char *)(iterator->name), "trkseg") == 0 ){
+        TrackSegment * newTrackSeg;
+
+        newTrackSeg = parseTrackSeg( iterator );
+
+        insertFront( trackSegList, newTrackSeg );
+      } else {
+        addTrackSegments( trackSegList, iterator->children );
+      }
+    }
+  }
+
+}
+
+TrackSegment * parseTrackSeg( xmlNode * curNode ){
+  // track segment is just a list of waypoints
+  TrackSegment * returnTrackSeg = malloc( sizeof(TrackSegment) );
+
+  returnTrackSeg->waypoints = getWaypointsList( curNode, 2 );
+
+  return returnTrackSeg;
+}
+
+
+
+// * * * * * * * * * * * * * * * * * * * * 
+// *********  Track Functions  ***********
+// * * * * * * * * * * * * * * * * * * * *
+
+List * getTracksList( xmlNode * headNode ){
+  List * trackList = initializeList( trackToString, deleteTrack, compareTracks );
+
+  addTracks( trackList, headNode );
+
+  return trackList;
+}
+
+void addTracks( List * trackList, xmlNode * headNode ){
+  xmlNode * iterator;
+
+  for( iterator = headNode; iterator != NULL; iterator = iterator->next ){
+    if (iterator->type == XML_ELEMENT_NODE){
+      if( strcmp((char *)(iterator->name), "trk") == 0 ){
+        Track * newTrack;
+
+        newTrack = parseTrack( iterator );
+
+        insertFront( trackList, newTrack );
+      } else {
+        addTracks( trackList, iterator->children );
+      }
+    }
+  }
+}
+
+Track * parseTrack( xmlNode * curNode ){
+  Track * returnTrack = malloc( sizeof(Track) );
+
+  returnTrack->name = malloc( sizeof(char) );
+  strcpy( returnTrack->name, "" );
+
+  // get the tracksegment data out
+  returnTrack->segments = getTrackSegList( curNode );
+
+  // get the other data
+  returnTrack->otherData = initializeList( gpxDataToString, deleteGpxData, compareGpxData );
+
+  xmlNode * childIterNode;
+  char * contents;
+
+  for( childIterNode = curNode->children; childIterNode != NULL; childIterNode = childIterNode->next ){
+    if (childIterNode->type == XML_ELEMENT_NODE){
+      if( strcmp( (char *)(childIterNode->name), "trkpt" ) != 0 && strcmp( (char *)(childIterNode->name), "trkseg" ) != 0 ){
+        if( strcmp( (char *)(childIterNode->name), "name") == 0 ){
+          // get the contents, realloc, then add the name
+          contents = (char *) xmlNodeGetContent( childIterNode );
+        
+          returnTrack->name = realloc( returnTrack->name, strlen( contents ) + 1 );
+
+          strcpy( returnTrack->name, contents );
+      
+        } else {
+          contents = (char *) xmlNodeGetContent( childIterNode );
+
+          GPXData * newData = malloc( sizeof(GPXData) + strlen(contents) + 1);
+
+          strcpy( newData->name, (char *)(childIterNode->name) );
+          strcpy( newData->value, contents );
+
+          insertFront( returnTrack->otherData, newData );
+        }
+        xmlFree(contents);
+      }
+    }
+  }
+  return returnTrack;
 }
