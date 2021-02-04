@@ -414,9 +414,7 @@ int getNumWaypoints(const GPXdoc* doc){
   }
 
   int wptCount;
-
   wptCount = getLength( doc->waypoints );
-
   return wptCount;
 }
 
@@ -426,9 +424,7 @@ int getNumRoutes(const GPXdoc* doc){
   }
 
   int routeCount;
-
   routeCount = getLength( doc->routes );
-  
   return routeCount;
 }
 
@@ -438,9 +434,7 @@ int getNumTracks(const GPXdoc* doc){
   }
 
   int trackCount;
-
   trackCount = getLength( doc->tracks );
-
   return trackCount;
 }
 
@@ -548,4 +542,67 @@ int getNumGPXData(const GPXdoc* doc){
   }
 
   return dataCount;
+}
+
+
+Waypoint * getWaypoint( const GPXdoc * doc, char * name ){
+  if( doc == NULL || name == NULL ){
+    return NULL;
+  }
+  
+  ListIterator wptIter;
+  Waypoint * wpt;
+
+  // loop the waypoints and compare the names
+  if( getLength( doc->waypoints) != 0 ){
+    wptIter = createIterator( doc->waypoints );
+    for( wpt = nextElement( &wptIter ); wpt != NULL; wpt = nextElement( &wptIter ) ){
+      if( strcmp( wpt->name, name ) == 0 ){
+        return wpt;
+      }
+    }
+  }
+  return NULL;
+}
+
+Track * getTrack( const GPXdoc * doc, char * name){
+  if( doc == NULL || name == NULL ){
+    return NULL;
+  }
+
+  Track * track;
+  ListIterator trackIter;
+
+  // loop through tracks and compare names
+  if( getLength( doc->tracks) != 0 ){
+    trackIter = createIterator( doc->tracks );
+    for( track = nextElement( &trackIter ); track != NULL; track = nextElement( &trackIter ) ){
+      if( strcmp( track->name, name ) == 0 ){
+        return track;
+      }
+    }
+  }
+  return NULL;
+}
+
+Route * getRoute( const GPXdoc * doc, char * name ){
+  if( doc == NULL || name == NULL ){
+    return NULL;
+  }
+
+  ListIterator routeIter;
+  Route * route;
+
+  // route other data
+  if( getLength( doc->routes) != 0 ){
+    routeIter = createIterator( doc->routes );
+
+    for( route = nextElement( &routeIter ); route != NULL; route = nextElement( &routeIter ) ){
+      if( strcmp( route->name, name ) == 0 ){
+        return route;
+      }
+    }
+  }
+  
+  return NULL;
 }
