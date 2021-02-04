@@ -317,3 +317,90 @@ Track * parseTrack( xmlNode * curNode ){
   }
   return returnTrack;
 }
+
+
+
+
+
+// * * * * * * * * * * * * * * * * * * * * 
+// *********  Other Functions  ***********
+// * * * * * * * * * * * * * * * * * * * *
+
+int compareWaypointList( List * firstList, List * secondList ){
+  ListIterator firstIter = createIterator( firstList );
+  ListIterator secondIter = createIterator( secondList );
+
+  Waypoint * firstNode = nextElement( &firstIter );
+  Waypoint * secondNode = nextElement( &secondIter );
+
+  while( firstNode != NULL && secondNode != NULL ){
+    if( compareWaypoints( firstNode, secondNode ) == 0 ){
+      return 0;
+    }
+    firstNode = nextElement( &firstIter );
+    secondNode = nextElement( &secondIter );
+  }
+  if( firstNode == NULL && secondNode == NULL ){
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+int compareOtherDataList( List * firstList, List * secondList ){
+  ListIterator firstIter;
+  ListIterator secondIter;
+
+  GPXData * firstgpx;
+  GPXData * secondgpx;
+
+  // set the iterators for the other data list
+  firstIter = createIterator( firstList );
+  secondIter = createIterator( secondList );
+
+  firstgpx = nextElement( &firstIter );
+  secondgpx = nextElement( &secondIter );
+
+  // loop will return 0 if a false comparison is reached
+  while( firstgpx != NULL && secondgpx != NULL ){
+    if( compareGpxData( firstgpx, secondgpx ) == 0 ){
+      return 0;
+    }
+    firstgpx = nextElement( &firstIter );
+    secondgpx = nextElement( &secondIter );
+  }
+  // check if they are both null because if they are not then theyre not equal
+  if( firstgpx == NULL && secondgpx == NULL ){
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+int compareTrackSegList( List * firstList, List * secondList ){
+  ListIterator firstIter;
+  ListIterator secondIter;
+
+  TrackSegment * firstTrackSeg;
+  TrackSegment * secondTrackSeg;
+
+  firstIter = createIterator( firstList );
+  secondIter = createIterator( secondList );
+
+  firstTrackSeg = nextElement( &firstIter );
+  secondTrackSeg = nextElement( &secondIter );
+
+  while( firstTrackSeg != NULL && secondTrackSeg != NULL ){
+
+    if( compareTrackSegments( firstTrackSeg, secondTrackSeg ) == 0 ){
+      return 0;
+    }
+    firstTrackSeg = nextElement( &firstIter );
+    secondTrackSeg = nextElement( &secondIter );
+  }
+  if( firstTrackSeg == NULL && secondTrackSeg == NULL ){
+    return 1;
+  } else {
+    return 0;
+  }
+}

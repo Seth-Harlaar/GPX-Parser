@@ -164,16 +164,16 @@ char * waypointToString( void * data ){
 }
 
 int compareWaypoints( const void * first, const void * second ){
-
   const Waypoint * firstWpt = first;
   const Waypoint * secondWpt = second;
 
   // compare name, lon, lat
-  if( strcmp(firstWpt->name, secondWpt->name) == 0 ){
+  if( strcmp( firstWpt->name, secondWpt->name) == 0 ){
     if( firstWpt->longitude == secondWpt->longitude ){
       if( firstWpt->latitude == secondWpt->latitude ){
-        
-        return 1;
+        if( compareOtherDataList( firstWpt->otherData, secondWpt->otherData ) == 1 ){
+          return 1;
+        }
       }
     }
   }
@@ -271,6 +271,16 @@ char* routeToString( void* data ){
 
 int compareRoutes(const void *first, const void *second){
 
+  const Route * firstRoute = first;
+  const Route * secondRoute = second;
+
+  if( strcmp( firstRoute->name, secondRoute->name ) == 0 ){
+    if( compareWaypointList( firstRoute->waypoints, secondRoute->waypoints) == 1 ){
+      if( compareOtherDataList( firstRoute->otherData, secondRoute->otherData) == 1 ){
+        return 1;
+      }
+    }
+  }
   return 0;
 }
 
@@ -327,7 +337,18 @@ char* trackToString( void * data ){
 }
 
 int compareTracks( const void *first, const void *second ){
-  // compare the stuff
+
+  const Track * firstTrack = first;
+  const Track * secondTrack = second;
+
+  if( strcmp( firstTrack->name, secondTrack->name ) == 0 ){
+    if( compareTrackSegList( firstTrack->segments, secondTrack->segments ) == 1 ){
+      if( compareOtherDataList( firstTrack->otherData, secondTrack->otherData ) == 1 ){
+        return 1;
+      }
+    }
+  }
+
   return 0;
 }
 
@@ -370,5 +391,11 @@ char* trackSegmentToString(void* data){
 
 int compareTrackSegments(const void *first, const void *second){
 
-  return 1;
+  const TrackSegment * firstTrackSeg = first;
+  const TrackSegment * secondTrackSeg = second;
+
+  if( compareWaypointList( firstTrackSeg->waypoints, secondTrackSeg->waypoints ) == 1 ){
+    return 1;
+  }
+  return 0;
 }

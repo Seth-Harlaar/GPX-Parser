@@ -28,6 +28,11 @@ List * getTracksList( xmlNode * headNode );
 void addTracks( List * trackList, xmlNode * headNode );
 Track * parseTrack( xmlNode * curNode );
 
+// extras
+int compareWaypointList( List * firstList, List * secondList );
+int compareOtherDataList( List * firstLIst, List * secondList );
+int compareTrackSegList( List * firstList, List * secondList );
+
 
 
 #endif
