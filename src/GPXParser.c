@@ -1,5 +1,8 @@
-#include "../include/GPXParser.h"
-#include "../include/GPXhelpers.h"
+// Seth Harlaar -- 1109524
+
+
+#include "GPXParser.h"
+#include "GPXhelpers.h"
 #include <stdlib.h>
 
 
@@ -398,4 +401,151 @@ int compareTrackSegments(const void *first, const void *second){
     return 1;
   }
   return 0;
+}
+
+
+// * * * * * * * * * * * * * * * * * * * * 
+// **********  Get Functions  ************
+// * * * * * * * * * * * * * * * * * * * *
+
+int getNumWaypoints(const GPXdoc* doc){
+  if( doc == NULL ){
+    return 0;
+  }
+
+  int wptCount;
+
+  wptCount = getLength( doc->waypoints );
+
+  return wptCount;
+}
+
+int getNumRoutes(const GPXdoc* doc){
+  if( doc == NULL ){
+    return 0;
+  }
+
+  int routeCount;
+
+  routeCount = getLength( doc->routes );
+  
+  return routeCount;
+}
+
+int getNumTracks(const GPXdoc* doc){
+  if( doc == NULL ){
+    return 0;
+  }
+
+  int trackCount;
+
+  trackCount = getLength( doc->tracks );
+
+  return trackCount;
+}
+
+int getNumSegments(const GPXdoc* doc){
+  Track * track;
+  int segCount = 0;
+  
+  if( doc == NULL || doc->tracks == NULL ){
+    return 0;
+  }
+
+  ListIterator trackIter = createIterator( doc->tracks );
+
+  for( track = nextElement( &trackIter ); track != NULL; track = nextElement( &trackIter ) ){
+    segCount += getLength( track->segments );
+  }
+
+  return segCount;
+}
+
+int getNumGPXData(const GPXdoc* doc){
+  Waypoint * wpt;
+  Track * track;
+  Route * route;
+  TrackSegment * seg;
+  
+  ListIterator wptIter;
+  ListIterator routeIter;
+  ListIterator trackIter;
+  ListIterator segIter;
+
+  int dataCount = 0;
+
+  // if doc is null return 0
+  if( doc == NULL ){
+    return 0;
+  }
+
+  // if doc is null return 0
+  if( doc->waypoints == NULL || doc->routes == NULL || doc->tracks == NULL ){
+    return 0;
+  }
+
+  // count the waypoints other data
+  if( getLength( doc->waypoints) != 0 ){
+    wptIter = createIterator( doc->waypoints );
+
+    for( wpt = nextElement( &wptIter ); wpt != NULL; wpt = nextElement( &wptIter ) ){
+      dataCount += getLength( wpt->otherData );
+      if( strcmp( wpt->name, "" ) != 0 ){
+        dataCount++;
+      }
+    }
+  }
+
+  // route other data
+  if( getLength( doc->routes) != 0 ){
+    routeIter = createIterator( doc->routes );
+
+    for( route = nextElement( &routeIter ); route != NULL; route = nextElement( &routeIter ) ){
+      dataCount += getLength( route->otherData );
+      if( strcmp( route->name, "" ) != 0 ){
+        dataCount++;
+      }
+      // count the other data in each waypoint
+      if( getLength( route->waypoints) != 0 ){
+        wptIter = createIterator( route->waypoints );
+        for( wpt = nextElement( &wptIter ); wpt != NULL; wpt = nextElement( &wptIter ) ){
+          dataCount += getLength( wpt->otherData );
+          if( strcmp( wpt->name, "" ) != 0 ){
+            dataCount++;
+          }
+        }
+      }
+    }
+  }
+
+  // track other data
+  if( getLength( doc->tracks) != 0 ){
+    trackIter = createIterator( doc->tracks );
+
+    for( track = nextElement( &trackIter ); track != NULL; track = nextElement( &trackIter ) ){
+      dataCount += getLength( track->otherData );
+      if( strcmp( track->name, "" ) != 0 ){
+        dataCount++;
+      }
+      // count the other data in each track segment
+      if( getLength( track->segments ) != 0 ){
+        segIter = createIterator( track->segments );
+        // for each track segment
+        for( seg = nextElement( &segIter ); seg != NULL; seg = nextElement( &segIter ) ){
+          if( getLength(seg->waypoints) != 0 ){
+            // which each have a list of waypoints
+            wptIter = createIterator( seg->waypoints );
+            for( wpt = nextElement( &wptIter ); wpt != NULL; wpt = nextElement( &wptIter ) ){
+              dataCount += getLength( wpt->otherData );
+              if( strcmp( wpt->name, "") != 0 ){
+                dataCount++;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return dataCount;
 }

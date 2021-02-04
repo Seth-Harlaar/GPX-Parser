@@ -1,3 +1,5 @@
+// Seth Harlaar -- 1109524
+
 #ifndef GPX_HELPERS_H
 #define GPX_HELPERS_H
 

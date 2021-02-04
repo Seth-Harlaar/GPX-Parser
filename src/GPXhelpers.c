@@ -1,7 +1,10 @@
-#include "../include/GPXParser.h"
-#include "../include/GPXhelpers.h"
+// Seth Harlaar -- 1109524
+
+#include "GPXParser.h"
+#include "GPXhelpers.h"
 
 
+// if an error is encountered, NULL will be returned
 
 // * * * * * * * * * * * * * * * * * * * * 
 // ******** Waypoint Functions ***********
@@ -9,8 +12,15 @@
 
 // start the list, run the function to add the waypoints
 List * getWaypointsList( xmlNode * headNode, int mode ){
+  if( headNode == NULL ){
+    return NULL;
+  }
   // initialize the list
   List * returnList = initializeList( waypointToString, deleteWaypoint, compareWaypoints );
+
+  if( returnList == NULL  ){
+    return NULL;
+  }
   // add all the waypoints to the list
   addWaypoints( returnList, headNode, mode );
 
@@ -19,6 +29,7 @@ List * getWaypointsList( xmlNode * headNode, int mode ){
 
 // find all the way points and add them to the list
 void addWaypoints( List * wptList, xmlNode * headNode, int mode ){
+
   xmlNode * iterator = NULL;
 
   // this loop taken from the libxmlexample.c file
@@ -28,7 +39,7 @@ void addWaypoints( List * wptList, xmlNode * headNode, int mode ){
       if( strcmp((char *)(iterator->name), "wpt") == 0 && mode == 0 ){
         // parse the waypoint, add the data to the list element
         Waypoint * newWpt = malloc( sizeof(Waypoint) );
-        
+
         newWpt->otherData = initializeList(gpxDataToString, deleteGpxData, compareGpxData );
 
         parseWaypoint( newWpt, iterator );
@@ -47,7 +58,7 @@ void addWaypoints( List * wptList, xmlNode * headNode, int mode ){
         Waypoint * newWpt = malloc( sizeof(Waypoint) );
 
         newWpt->otherData = initializeList(gpxDataToString, deleteGpxData, compareGpxData );
-
+        
         parseWaypoint( newWpt, iterator );
 
         insertFront( wptList, newWpt );
@@ -59,7 +70,6 @@ void addWaypoints( List * wptList, xmlNode * headNode, int mode ){
     }   
   }
 }
-
 
 // parse each waypoint and get the data out of them + their children
 void parseWaypoint( Waypoint * newWpt, xmlNode * curNode ){
@@ -120,14 +130,24 @@ void parseWaypoint( Waypoint * newWpt, xmlNode * curNode ){
 }
 
 
+
+
+
+
 // * * * * * * * * * * * * * * * * * * * * 
 // ********  Route Functions  ************
 // * * * * * * * * * * * * * * * * * * * *
 
-
 List * getRoutesList( xmlNode * headNode ){
+  if( headNode == NULL ){
+    return NULL;
+  }
   // initialize list
   List * returnList = initializeList( routeToString, deleteRoute, compareWaypoints );
+
+  if( returnList == NULL ){
+    return NULL;
+  }
 
   addRoutes( returnList, headNode );
 
@@ -201,12 +221,24 @@ Route * parseRoute( xmlNode * curNode ){
   return returnRoute;
 }
 
+
+
+
+
 // * * * * * * * * * * * * * * * * * * * * 
 // ******  TrackSegment Functions  *******
 // * * * * * * * * * * * * * * * * * * * *
 
 List * getTrackSegList( xmlNode * headNode ){
+  if( headNode == NULL ){
+    return NULL;
+  }
+
   List * trackSegList = initializeList( trackSegmentToString, deleteTrackSegment, compareTrackSegments );
+
+  if( trackSegList == NULL ){
+    return NULL;
+  }
 
   addTrackSegments( trackSegList, headNode );
 
@@ -250,7 +282,15 @@ TrackSegment * parseTrackSeg( xmlNode * curNode ){
 // * * * * * * * * * * * * * * * * * * * *
 
 List * getTracksList( xmlNode * headNode ){
+  if( headNode == NULL ){
+    return NULL;
+  }
+
   List * trackList = initializeList( trackToString, deleteTrack, compareTracks );
+
+  if( trackList == NULL ){
+    return NULL;
+  }
 
   addTracks( trackList, headNode );
 
@@ -276,6 +316,7 @@ void addTracks( List * trackList, xmlNode * headNode ){
 }
 
 Track * parseTrack( xmlNode * curNode ){
+
   Track * returnTrack = malloc( sizeof(Track) );
 
   returnTrack->name = malloc( sizeof(char) );
