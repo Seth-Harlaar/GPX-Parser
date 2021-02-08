@@ -31,7 +31,7 @@ int main( int argc, char * argv[] ){
   printf("  getNumSegments: %d\n", getNumSegments(testgpxDoc) );
   printf("  getNumGPXData: %d\n", getNumGPXData(testgpxDoc) );
 
-
+  /*
   Waypoint * wpt = getWaypoint( testgpxDoc, "Raven Dance Peak 1647m" );
   char * wptString = waypointToString( wpt );
   printf(" Waypoint found: %s\n", wptString );
@@ -53,6 +53,7 @@ int main( int argc, char * argv[] ){
   if( track == NULL ){
     printf(" Second NULL test passed \n");
   }
+  */
 
   // test the compare functions
   free(tempString);

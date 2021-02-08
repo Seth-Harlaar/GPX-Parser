@@ -44,7 +44,7 @@ void addWaypoints( List * wptList, xmlNode * headNode, int mode ){
 
         parseWaypoint( newWpt, iterator );
 
-        insertFront( wptList, newWpt );
+        insertBack( wptList, newWpt );
       }  else if( strcmp((char *)(iterator->name), "rtept") == 0 && mode == 1 ){
         Waypoint * newWpt = malloc( sizeof(Waypoint) );
 
@@ -52,7 +52,7 @@ void addWaypoints( List * wptList, xmlNode * headNode, int mode ){
 
         parseWaypoint( newWpt, iterator );
 
-        insertFront( wptList, newWpt );
+        insertBack( wptList, newWpt );
         
       } else if( strcmp((char *)(iterator->name), "trkpt") == 0 && mode == 2 ){
         Waypoint * newWpt = malloc( sizeof(Waypoint) );
@@ -61,7 +61,7 @@ void addWaypoints( List * wptList, xmlNode * headNode, int mode ){
         
         parseWaypoint( newWpt, iterator );
 
-        insertFront( wptList, newWpt );
+        insertBack( wptList, newWpt );
       
       } else {
         // search the children of the node
@@ -122,7 +122,7 @@ void parseWaypoint( Waypoint * newWpt, xmlNode * curNode ){
         strcpy( newData->value, contents );
         
         // add the data to the otherData list
-        insertFront( newWpt->otherData, newData );
+        insertBack( newWpt->otherData, newData );
       }
       xmlFree(contents);
     }
@@ -166,7 +166,7 @@ void addRoutes( List * routeList, xmlNode * headNode ){
 
         newRoute = parseRoute( iterator );
 
-        insertFront( routeList, newRoute );
+        insertBack( routeList, newRoute );
       } else {
         addRoutes( routeList, iterator->children );
       }
@@ -210,7 +210,7 @@ Route * parseRoute( xmlNode * curNode ){
           strcpy( newData->name, (char *)(childIterNode->name) );
           strcpy( newData->value, contents );
 
-          insertFront( returnRoute->otherData, newData );
+          insertBack( returnRoute->otherData, newData );
         }
         xmlFree(contents);
       }
@@ -257,7 +257,7 @@ void addTrackSegments( List * trackSegList, xmlNode * headNode ){
 
         newTrackSeg = parseTrackSeg( iterator );
 
-        insertFront( trackSegList, newTrackSeg );
+        insertBack( trackSegList, newTrackSeg );
       } else {
         addTrackSegments( trackSegList, iterator->children );
       }
@@ -270,7 +270,7 @@ TrackSegment * parseTrackSeg( xmlNode * curNode ){
   // track segment is just a list of waypoints
   TrackSegment * returnTrackSeg = malloc( sizeof(TrackSegment) );
 
-  returnTrackSeg->waypoints = getWaypointsList( curNode, 2 );
+  returnTrackSeg->waypoints = getWaypointsList( curNode->children, 2 );
 
   return returnTrackSeg;
 }
@@ -307,7 +307,7 @@ void addTracks( List * trackList, xmlNode * headNode ){
 
         newTrack = parseTrack( iterator );
 
-        insertFront( trackList, newTrack );
+        insertBack( trackList, newTrack );
       } else {
         addTracks( trackList, iterator->children );
       }
@@ -350,7 +350,7 @@ Track * parseTrack( xmlNode * curNode ){
           strcpy( newData->name, (char *)(childIterNode->name) );
           strcpy( newData->value, contents );
 
-          insertFront( returnTrack->otherData, newData );
+          insertBack( returnTrack->otherData, newData );
         }
         xmlFree(contents);
       }

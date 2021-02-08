@@ -14,6 +14,10 @@
 // make the gpx doc
 GPXdoc * createGPXdoc(char* fileName){
 
+  if( fileName == NULL ){
+    return NULL;
+  }
+
   // vars 
   GPXdoc * returnDoc = malloc( sizeof(GPXdoc) );
   xmlDoc * doc = NULL;
