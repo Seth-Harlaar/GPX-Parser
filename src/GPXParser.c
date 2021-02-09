@@ -1,6 +1,5 @@
 // Seth Harlaar -- 1109524
 
-
 #include "GPXParser.h"
 #include "GPXhelpers.h"
 #include <stdlib.h>
@@ -317,7 +316,7 @@ char* trackToString( void * data ){
     tempOtherString = toString( track->otherData );
   } else {
     tempOtherString = malloc( sizeof(char) * 50 );
-    strcpy( tempOtherString, "  There is no other data for this file\n");
+    strcpy( tempOtherString, "  There is no other data for this track\n");
   }
   length += strlen( tempOtherString ) + 1;
 
@@ -325,7 +324,7 @@ char* trackToString( void * data ){
     tempSegmentString = toString( track->segments );
   } else {
     tempSegmentString = malloc( sizeof(char) * 50 );
-    strcpy( tempSegmentString, "  There are no segments for this file\n");
+    strcpy( tempSegmentString, "  There are no segments for this track\n");
   }
   length += strlen( tempSegmentString ) + 1;
  
