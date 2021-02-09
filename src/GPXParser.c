@@ -27,7 +27,7 @@ GPXdoc * createGPXdoc(char* fileName){
   doc = xmlReadFile(fileName, NULL, 0);
 
   if( doc == NULL ){
-    printf("A GPX document could not be found with the filename given: %s", fileName);
+    return NULL;
   }
 
   headNode = xmlDocGetRootElement(doc);
@@ -73,7 +73,7 @@ void deleteGPXdoc(GPXdoc* doc){
   freeList( doc->routes );
   freeList( doc->tracks );
 
-  // free the struc itself
+  // free the struct itself
   free(doc);
 }
 
