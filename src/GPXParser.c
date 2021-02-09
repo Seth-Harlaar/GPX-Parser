@@ -21,6 +21,7 @@ GPXdoc * createGPXdoc(char* fileName){
   GPXdoc * returnDoc = malloc( sizeof(GPXdoc) );
   xmlDoc * doc = NULL;
   xmlNode * headNode = NULL;
+  xmlAttr * iterPoint = NULL;
 
   // get doc and check if null
   doc = xmlReadFile(fileName, NULL, 0);
@@ -31,15 +32,26 @@ GPXdoc * createGPXdoc(char* fileName){
 
   headNode = xmlDocGetRootElement(doc);
 
-  // get namespace -- cannot be an empty string, assume there is only one
-  
+  // get version and creator and namespace -- must be initialized
 
-  // get version -- must be initialized
-  double tempVers = strtod((char *) doc->version, NULL);
+  // this loop was taken from libxmlexample.c
+  for( iterPoint = headNode->properties; iterPoint != NULL; iterPoint = iterPoint->next ){
+    xmlNode * value = iterPoint->children;
+    
+    char * attrName = (char *) iterPoint->name;
+    char * cont  = (char *)(value->content);
 
-  returnDoc->version = tempVers;
+    // check if it is a lon or lan attribute, store the data if so 
+    if( strcmp(attrName, "creator") == 0 ){
+      returnDoc->creator = malloc( sizeof(char) * strlen(cont) );
+      strcpy( returnDoc->creator, cont );
+    } else if( strcmp( attrName, "version" ) == 0 ){
+      returnDoc->version = strtod( (char *) doc->version, NULL );
+    }
+  }
 
-  // get creator -- cannot be null, cannot be an empty string
+  strcpy( returnDoc->namespace, "" );
+
 
   // list of waypoints -- cannot be null, may be empty
   List * wayPoints = NULL;
@@ -66,7 +78,7 @@ GPXdoc * createGPXdoc(char* fileName){
 void deleteGPXdoc(GPXdoc* doc){
   // destroy all the data in there
   // free the creator value because its malloced
-  
+  free( doc->creator );
   // free the different lists
   freeList( doc->waypoints );
   freeList( doc->routes );
@@ -120,7 +132,7 @@ char* GPXdocToString(GPXdoc* doc){
   tempString = malloc( sizeof( char ) * length );
 
   // add the data
-  sprintf( tempString, "GPX doc:\n Version: %.1f\n %s\n%s\n%s\n", doc->version, tempWptString, tempRouteString, tempTrackString );
+  sprintf( tempString, "GPX doc:\n Version: %.1f\n Creator: %s \n NameSpace:  %s\n%s\n%s\n%s\n", doc->version, doc->creator, doc->namespace, tempWptString, tempRouteString, tempTrackString );
 
   // free strings used
   free( tempWptString );
