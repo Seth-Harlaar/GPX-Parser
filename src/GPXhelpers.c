@@ -182,7 +182,7 @@ Route * parseRoute( xmlNode * curNode ){
   strcpy( returnRoute->name, "" );
 
   // get the waypoints data out
-  returnRoute->waypoints = getWaypointsList( curNode, 1 );
+  returnRoute->waypoints = getWaypointsList( curNode->children, 1 );
 
   // get the otherData out
   returnRoute->otherData = initializeList( gpxDataToString, deleteGpxData, compareGpxData );
@@ -323,7 +323,7 @@ Track * parseTrack( xmlNode * curNode ){
   strcpy( returnTrack->name, "" );
 
   // get the tracksegment data out
-  returnTrack->segments = getTrackSegList( curNode );
+  returnTrack->segments = getTrackSegList( curNode->children );
 
   // get the other data
   returnTrack->otherData = initializeList( gpxDataToString, deleteGpxData, compareGpxData );
