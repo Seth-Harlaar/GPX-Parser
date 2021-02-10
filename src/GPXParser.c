@@ -76,21 +76,26 @@ GPXdoc * createGPXdoc(char* fileName){
 
 // get rid of the gpx doc
 void deleteGPXdoc(GPXdoc* doc){
-  // destroy all the data in there
-  // free the creator value because its malloced
-  free( doc->creator );
-  // free the different lists
-  freeList( doc->waypoints );
-  freeList( doc->routes );
-  freeList( doc->tracks );
+  if( doc != NULL ){
+    // destroy all the data in there
+    // free the creator value because its malloced
+    free( doc->creator );
+    // free the different lists
+    freeList( doc->waypoints );
+    freeList( doc->routes );
+    freeList( doc->tracks );
 
-  // free the struct itself
-  free(doc);
+    // free the struct itself
+    free(doc);
+  }
 }
 
 // turn the gpx doc into a string
 // the code for this function was heavily inspired by the structListDemo.c file
 char* GPXdocToString(GPXdoc* doc){
+  if( doc == NULL ){
+    return NULL;
+  }
   char * tempString;
   char * tempWptString;
   char * tempRouteString;

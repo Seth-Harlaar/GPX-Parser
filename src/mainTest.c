@@ -21,8 +21,9 @@ int main( int argc, char * argv[] ){
 
   tempString = GPXdocToString(testgpxDoc);
 
-  printf("%s\n", tempString);
+  //printf("%s\n", tempString);
 
+  /*
   printf("get data:\n");
 
   printf("  GetNumWaypoints: %d\n", getNumWaypoints(testgpxDoc) );
@@ -30,7 +31,7 @@ int main( int argc, char * argv[] ){
   printf("  getNumTracks: %d\n", getNumTracks(testgpxDoc) );
   printf("  getNumSegments: %d\n", getNumSegments(testgpxDoc) );
   printf("  getNumGPXData: %d\n", getNumGPXData(testgpxDoc) );
-
+  */
   /*
   Waypoint * wpt = getWaypoint( testgpxDoc, "Raven Dance Peak 1647m" );
   char * wptString = waypointToString( wpt );
@@ -56,6 +57,6 @@ int main( int argc, char * argv[] ){
   */
 
   // test the compare functions
-  free(tempString);
+  // free(tempString);
   deleteGPXdoc(testgpxDoc);
 }

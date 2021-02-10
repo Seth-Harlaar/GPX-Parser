@@ -196,7 +196,7 @@ Route * parseRoute( xmlNode * curNode ){
         if( strcmp( (char *)(childIterNode->name), "name") == 0 ){
           // get the contents, realloc, then add the name
           contents = (char *) xmlNodeGetContent( childIterNode );
-        
+
           int length = strlen( contents ) + 1;
           returnRoute->name = realloc( returnRoute->name, length );
 
