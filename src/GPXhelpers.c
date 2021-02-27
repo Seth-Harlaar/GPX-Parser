@@ -445,3 +445,81 @@ int compareTrackSegList( List * firstList, List * secondList ){
     return 0;
   }
 }
+
+
+// * * * * * * * * * * * * * * * * * * * * 
+// ******** Assignment 2 Helpers *********
+// * * * * * * * * * * * * * * * * * * * *
+
+// converts a GPXdoc to an xmlDoc
+xmlDoc * docToDoc( GPXdoc * gpxDoc ){
+  
+  if( gpxDoc == NULL ){
+    return NULL;
+  }
+
+  char * lat;
+  char * lon;
+
+  xmlDoc * returnDoc          = NULL;
+  xmlNode * rootNode          = NULL;
+  xmlNode * newWaypointNode   = NULL;
+
+  ListIterator listIter;
+  ListIterator dataIter;
+  Waypoint * curWpt;
+  GPXData * curData;
+
+  returnDoc = xmlNewDoc( BAD_CAST "1.0" );
+
+  rootNode = xmlNewNode( NULL, BAD_CAST "gpx" );
+  xmlDocSetRootElement( returnDoc, rootNode );
+
+  // add all the root subdata here, creator, version, ns etc
+
+
+  // add all the waypoints if there are some
+  if( getLength( gpxDoc->waypoints ) != 0 ){
+
+    listIter = createIterator( gpxDoc->waypoints );
+    
+    for( curWpt = nextElement( &listIter ); curWpt != NULL; curWpt = nextElement( &listIter ) ){
+
+      newWaypointNode = xmlNewNode( NULL, BAD_CAST "wpt" );
+
+      lat = malloc( sizeof(double) + 1);
+      lon = malloc( sizeof(double) + 1);
+
+      sprintf( lat, "%f", curWpt->latitude );
+      sprintf( lon, "%f", curWpt->longitude );
+
+      xmlNewProp( newWaypointNode, BAD_CAST "lon", BAD_CAST lat );
+      xmlNewProp( newWaypointNode, BAD_CAST "lat", BAD_CAST lon );
+
+      // add the other data for the waypoint
+      if( getLength( curWpt->otherData ) != 0 ){
+        dataIter = createIterator( curWpt->otherData );
+
+        for( curData = nextElement( &dataIter ); curData != NULL; curData = nextElement( &dataIter ) ){
+          xmlNewChild( newWaypointNode, NULL, BAD_CAST curData->name, BAD_CAST curData->value );
+        }
+      }
+
+      // add an extra node for the name
+      xmlNewChild( newWaypointNode, NULL, BAD_CAST "name", BAD_CAST curWpt->name );
+
+      xmlAddChild( rootNode, newWaypointNode );
+    }
+  }
+  
+
+  // add the tracks
+
+
+  // add the routes
+
+
+  // save the doc to a file for now to test but this should be removed later
+  xmlSaveFormatFileEnc( "output.gpx", returnDoc, "ISO-8859-1", 1);
+  return returnDoc;
+}

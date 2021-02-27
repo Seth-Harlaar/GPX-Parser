@@ -36,5 +36,8 @@ int compareOtherDataList( List * firstLIst, List * secondList );
 int compareTrackSegList( List * firstList, List * secondList );
 
 
+// A2 helpers
+xmlDoc * docToDoc( GPXdoc * gpxDoc );
+
 
 #endif

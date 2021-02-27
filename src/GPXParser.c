@@ -10,8 +10,80 @@
 // ********  GPXDoc Functions  ***********
 // * * * * * * * * * * * * * * * * * * * *
 
+// This function goes here bc it is so closely related to createGPXDoc
+// Other A2 functions are in the A2 section
+GPXdoc * createValidGPXdoc( char * fileName, char * gpxSchemaFile ){
+  
+  if( fileName == NULL || gpxSchemaFile == NULL ){
+    return NULL;
+  }
+  GPXdoc * returnDoc;
+
+  // check the validity of the file -- the code for this functionality was taken from one of the links provided by the professor in the 
+  // assignment description. Also found here: http://knol2share.blogspot.com/2009/05/validate-xml-against-xsd-in-c.html
+  xmlDocPtr doc;
+  xmlSchemaPtr schema = NULL;
+  xmlSchemaParserCtxtPtr ctxt;
+
+  xmlLineNumbersDefault(1);
+
+  ctxt = xmlSchemaNewParserCtxt(gpxSchemaFile);
+
+  xmlSchemaSetParserErrors(ctxt, (xmlSchemaValidityErrorFunc) fprintf, (xmlSchemaValidityWarningFunc) fprintf, stderr);
+  schema = xmlSchemaParse(ctxt);
+  xmlSchemaFreeParserCtxt(ctxt);
+
+  // get the doc
+  doc = xmlReadFile(fileName, NULL, 0);
+
+  // check if readFile worked
+  if (doc == NULL){
+    fprintf(stderr, "Could not parse %s\n", fileName);
+    returnDoc = NULL;
+
+  } else {
+    xmlSchemaValidCtxtPtr ctxt;
+    int ret;
+
+    ctxt = xmlSchemaNewValidCtxt(schema);
+    xmlSchemaSetValidErrors(ctxt, (xmlSchemaValidityErrorFunc) fprintf, (xmlSchemaValidityWarningFunc) fprintf, stderr);
+    ret = xmlSchemaValidateDoc(ctxt, doc);
+    
+    // check result of validation test
+    if (ret == 0){
+      // fail
+      returnDoc = NULL;
+    
+    } else if (ret > 0) {
+      // pass
+      returnDoc = createGPXdoc( fileName );
+
+    } else {
+      // error
+      printf("%s validation generated an internal error\n", fileName);
+      returnDoc = NULL;
+    }
+
+    xmlSchemaFreeValidCtxt(ctxt);
+    xmlFreeDoc(doc);
+
+    return returnDoc;
+  }
+
+  // free the resource
+  if(schema != NULL)
+  xmlSchemaFree(schema);
+
+  xmlSchemaCleanupTypes();
+  xmlCleanupParser();
+  xmlMemoryDump();
+
+
+  return NULL;
+}
+
 // make the gpx doc
-GPXdoc * createGPXdoc(char* fileName){
+GPXdoc * createGPXdoc( char* fileName ){
 
   if( fileName == NULL ){
     return NULL;
@@ -625,4 +697,24 @@ Route * getRoute( const GPXdoc * doc, char * name ){
   }
   
   return NULL;
+}
+
+
+
+
+// * * * * * * * * * * * * * * * * * * * * 
+// ********    A2 Functions    ***********
+// * * * * * * * * * * * * * * * * * * * *
+
+bool writeGPXdoc( GPXdoc * doc, char * fileName ){
+  // check args
+  if( doc == NULL || fileName == NULL ){
+    return false;
+  }
+
+  // start writing to file
+  
+
+
+  return true;
 }
