@@ -39,5 +39,12 @@ int compareTrackSegList( List * firstList, List * secondList );
 // A2 helpers
 xmlDoc * docToDoc( GPXdoc * gpxDoc );
 
+// supports for docToDoc
+void addWaypointNodeList( xmlNode * parentNode, List * wpts, int mode );
+void addOtherDataNodeList( xmlNode * parentNode, List * dataList );
+void addRouteNodeList( xmlNode * parentNode, List * routes ); 
+void addTrackNodeList( xmlNode * parentNode, List * tracks);
+
+
 
 #endif

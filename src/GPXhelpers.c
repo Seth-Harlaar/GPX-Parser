@@ -447,9 +447,27 @@ int compareTrackSegList( List * firstList, List * secondList ){
 }
 
 
-// * * * * * * * * * * * * * * * * * * * * 
-// ******** Assignment 2 Helpers *********
-// * * * * * * * * * * * * * * * * * * * *
+
+
+
+
+
+
+
+
+
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+// *************************                        Assignment 2 Helpers                         *************************
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+
+// validates a libxml tree
+bool validateTree( xmlDoc * doc ){
+
+
+
+}
 
 // converts a GPXdoc to an xmlDoc
 xmlDoc * docToDoc( GPXdoc * gpxDoc ){
@@ -458,17 +476,8 @@ xmlDoc * docToDoc( GPXdoc * gpxDoc ){
     return NULL;
   }
 
-  char * lat;
-  char * lon;
-
-  xmlDoc * returnDoc          = NULL;
-  xmlNode * rootNode          = NULL;
-  xmlNode * newWaypointNode   = NULL;
-
-  ListIterator listIter;
-  ListIterator dataIter;
-  Waypoint * curWpt;
-  GPXData * curData;
+  xmlDoc * returnDoc = NULL;
+  xmlNode * rootNode = NULL;
 
   returnDoc = xmlNewDoc( BAD_CAST "1.0" );
 
@@ -480,46 +489,174 @@ xmlDoc * docToDoc( GPXdoc * gpxDoc ){
 
   // add all the waypoints if there are some
   if( getLength( gpxDoc->waypoints ) != 0 ){
+    addWaypointNodeList( rootNode, gpxDoc->waypoints, 0 );
+  }
 
-    listIter = createIterator( gpxDoc->waypoints );
+  // add the routes if there are some
+  if( getLength( gpxDoc->routes ) != 0 ){
+    addRouteNodeList( rootNode, gpxDoc->routes );
+  }
+
+  // add all the tracks if there are some
+  if( getLength( gpxDoc->tracks ) != 0 ){
+    addTrackNodeList( rootNode, gpxDoc->tracks );
+  }
+
+  // save the doc to a file for now to test but this should be removed later
+  xmlSaveFormatFileEnc( "output.gpx", returnDoc, "ISO-8859-1", 1);
+  return returnDoc;
+}
+
+void addTrackNodeList( xmlNode * parentNode, List * tracks){
+
+  if( parentNode != NULL && tracks != NULL ){
+    Track * curTrack;
+    TrackSegment * curTrackSeg;
+
+    ListIterator listIter = createIterator( tracks );
+    ListIterator trackSegIter;
+
+    xmlNode * newTrackNode;
+    xmlNode * newTrackSegNode;
+
+    // loop through the track list
+    for( curTrack = nextElement( &listIter ); curTrack != NULL; curTrack = nextElement( & listIter ) ){
+
+      newTrackNode = xmlNewNode( NULL, BAD_CAST "trk" );
+
+      // add the name node if the name is not just an empty string
+      if( strcmp( curTrack->name, "" ) != 0 ){
+        xmlNewChild( newTrackNode, NULL, BAD_CAST "name", BAD_CAST curTrack->name );
+      }      
+
+      // add the other data is there is any
+      if( getLength( curTrack->otherData ) != 0 ){
+        addOtherDataNodeList( newTrackNode, curTrack->otherData );
+      }
+
+      // add the track segments if there are any
+      if( getLength( curTrack->segments) != 0 ){
+        
+        trackSegIter = createIterator( curTrack->segments );
+        
+        // for each track segment
+        for( curTrackSeg = nextElement( &trackSegIter ); curTrackSeg != NULL; curTrackSeg = nextElement( &trackSegIter ) ){
+          newTrackSegNode = xmlNewNode( NULL, BAD_CAST "trk" );
+          
+          // there should always be waypoints, but check anyway
+          if( getLength( curTrackSeg->waypoints ) != 0 ){
+            addWaypointNodeList( newTrackSegNode, curTrackSeg->waypoints, 2 );
+          }
+          xmlAddChild( newTrackNode, newTrackSegNode );
+        }
+      }
+
+      xmlAddChild( parentNode, newTrackNode );
+    }
+  }
+}
+
+void addRouteNodeList( xmlNode * parentNode, List * routes ){
+  
+  if( parentNode != NULL && routes != NULL ){
+    Route * curRoute;
+    ListIterator listIter = createIterator( routes );
     
-    for( curWpt = nextElement( &listIter ); curWpt != NULL; curWpt = nextElement( &listIter ) ){
+    xmlNode * newRouteNode;
 
-      newWaypointNode = xmlNewNode( NULL, BAD_CAST "wpt" );
+    // for every route in the list 
+    for( curRoute = nextElement( &listIter ); curRoute != NULL; curRoute = nextElement( &listIter ) ){
 
+      newRouteNode = xmlNewNode( NULL, BAD_CAST "route" );
+
+      // add the name node if its not an empty string
+      if( strcmp( curRoute->name, "") != 0 ){
+        xmlNewChild( newRouteNode, NULL, BAD_CAST "name", BAD_CAST curRoute->name );
+      }
+      
+      // add the list of other data
+      if( getLength( curRoute->otherData ) != 0 ){
+        addOtherDataNodeList( newRouteNode, curRoute->otherData );
+      }
+
+      // add the list of waypoints if there are any
+      if( getLength( curRoute->waypoints ) != 0 ){
+        addWaypointNodeList( newRouteNode, curRoute->waypoints, 1 );
+      }
+
+      xmlAddChild( parentNode, newRouteNode );
+    }
+  }
+}
+
+
+void addWaypointNodeList( xmlNode * parentNode, List * wpts, int mode ){
+
+  char * lat;
+  char * lon;
+  char * nameString;
+
+  xmlNode * newWaypointNode;
+
+  ListIterator wptIter = createIterator( wpts );
+  Waypoint * curWpt;
+
+  if( parentNode != NULL && wpts != NULL ){
+    nameString = malloc( sizeof( char ) * 10 );
+    if( mode == 0 ){
+      sprintf( nameString, "wpt" );
+    } else if( mode == 1 ) {
+      sprintf( nameString, "rtept" );
+    } else {
+      sprintf( nameString, "trkpt" );
+    }
+
+
+    // for each wpt in the list make a new node and add it to the parent
+    for( curWpt = nextElement( &wptIter ); curWpt != NULL; curWpt = nextElement( &wptIter ) ){
+      
+
+      newWaypointNode = xmlNewNode( NULL, BAD_CAST nameString );
+
+      // get the lat and lon
       lat = malloc( sizeof(double) + 1);
       lon = malloc( sizeof(double) + 1);
 
       sprintf( lat, "%f", curWpt->latitude );
       sprintf( lon, "%f", curWpt->longitude );
 
-      xmlNewProp( newWaypointNode, BAD_CAST "lon", BAD_CAST lat );
-      xmlNewProp( newWaypointNode, BAD_CAST "lat", BAD_CAST lon );
+      // add them as properties
+      xmlNewProp( newWaypointNode, BAD_CAST "lat", BAD_CAST lat );
+      xmlNewProp( newWaypointNode, BAD_CAST "lon", BAD_CAST lon );
 
       // add the other data for the waypoint
       if( getLength( curWpt->otherData ) != 0 ){
-        dataIter = createIterator( curWpt->otherData );
-
-        for( curData = nextElement( &dataIter ); curData != NULL; curData = nextElement( &dataIter ) ){
-          xmlNewChild( newWaypointNode, NULL, BAD_CAST curData->name, BAD_CAST curData->value );
-        }
+        addOtherDataNodeList( newWaypointNode, curWpt->otherData );
       }
 
       // add an extra node for the name
-      xmlNewChild( newWaypointNode, NULL, BAD_CAST "name", BAD_CAST curWpt->name );
+      if( strcmp( curWpt->name, "") != 0 ){
+        xmlNewChild( newWaypointNode, NULL, BAD_CAST "name", BAD_CAST curWpt->name );
+      }
 
-      xmlAddChild( rootNode, newWaypointNode );
+      xmlAddChild( parentNode, newWaypointNode );
+
+      free( lat );
+      free( lon );
     }
   }
-  
+}
 
-  // add the tracks
+void addOtherDataNodeList( xmlNode * parentNode, List * dataList ){
 
+  // if the args arent null, add every otherData item to the parent node provided
+  if( parentNode != NULL && dataList != NULL ){
+    GPXData * curData;
 
-  // add the routes
+    ListIterator dataIter = createIterator( dataList );
 
-
-  // save the doc to a file for now to test but this should be removed later
-  xmlSaveFormatFileEnc( "output.gpx", returnDoc, "ISO-8859-1", 1);
-  return returnDoc;
+    for( curData = nextElement( &dataIter ); curData != NULL; curData = nextElement( &dataIter ) ){
+      xmlNewChild( parentNode, NULL, BAD_CAST curData->name, BAD_CAST curData->value );
+    }
+  }
 }
