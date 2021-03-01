@@ -465,7 +465,7 @@ int compareTrackSegList( List * firstList, List * secondList ){
 // validates a libxml tree
 bool validateTree( xmlDoc * doc ){
 
-
+  return false;
 
 }
 
@@ -504,6 +504,10 @@ xmlDoc * docToDoc( GPXdoc * gpxDoc ){
 
   // save the doc to a file for now to test but this should be removed later
   xmlSaveFormatFileEnc( "output.gpx", returnDoc, "ISO-8859-1", 1);
+
+  // free and stuff
+
+
   return returnDoc;
 }
 
@@ -619,8 +623,8 @@ void addWaypointNodeList( xmlNode * parentNode, List * wpts, int mode ){
       newWaypointNode = xmlNewNode( NULL, BAD_CAST nameString );
 
       // get the lat and lon
-      lat = malloc( sizeof(double) + 1);
-      lon = malloc( sizeof(double) + 1);
+      lat = malloc( 50 );
+      lon = malloc( 50 );
 
       sprintf( lat, "%f", curWpt->latitude );
       sprintf( lon, "%f", curWpt->longitude );
@@ -644,6 +648,7 @@ void addWaypointNodeList( xmlNode * parentNode, List * wpts, int mode ){
       free( lat );
       free( lon );
     }
+    free( nameString );
   }
 }
 
