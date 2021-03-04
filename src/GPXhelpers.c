@@ -922,3 +922,85 @@ bool checkDataList( List * dataList ){
   }
   return true;
 }
+
+// * * * * * * * * * * * * * * * * * * * * 
+// *****     A2 Mod 2 Helpers     ********
+// * * * * * * * * * * * * * * * * * * * *
+
+float haversine( float latitude1, float longitude1, float latitude2, float longitude2 ){
+
+  float a;
+  float c;
+  float d;
+  float R = 6371000;
+
+  float lat1 = latitude1 * M_PI/180;
+  float lat2 = latitude2 * M_PI/180;
+
+  float deltaLats = ( latitude2 - latitude1 )*M_PI/180;
+  float deltaLons = ( longitude2 - longitude1 )*M_PI/180;
+
+  a = ( sin( deltaLats/2 )*sin( deltaLats/2 ) ) + ( cos( lat1 )*cos( lat2 )*sin( deltaLons/2 )*sin( deltaLons/2 ) );
+
+  c = 2 * atan2( sqrt(a), sqrt( 1- a ) );
+
+  d = R*c;
+
+  return d;
+}
+
+float getLengthWaypoints( Waypoint * wpt1, Waypoint * wpt2 ){
+  float length;
+
+  if( wpt1 == NULL && wpt2 == NULL ){
+    return 0;
+  }
+
+  length = haversine( wpt1->latitude, wpt1->longitude, wpt2->latitude, wpt2->longitude );
+
+  return length;
+}
+
+float getLengthWaypointsList( List * wptsList ){
+  float totalLength;
+
+  Waypoint * wpt;
+  Waypoint * wptNext;
+  ListIterator wptIter;
+  ListIterator secondIter;
+
+  if( wptsList == NULL ){
+    return 0;
+  }
+  // make two iterators, one for curwpt, and one for the next element
+  wptIter = createIterator( wptsList );
+  secondIter = createIterator( wptsList );
+
+  // start with 0 length
+  totalLength = 0;
+
+  // get the first, and then the second wpt, should always be a second waypoint because length of list is checked before being passed in
+  wptNext = nextElement( &secondIter );
+  wptNext = nextElement( &secondIter );
+
+  // loop through each waypoint
+  for( wpt = nextElement( &wptIter ); wpt != NULL; wpt = nextElement( &wptIter ) ){
+
+    // if there is a wpt after the current wpt
+    if( wptNext != NULL ){
+      // get length inbetween the wpt and the next one
+      totalLength += getLengthWaypoints( wpt, nextElement( &wptIter ) );
+    }
+  }
+
+  return totalLength;
+}
+
+// checks if Elelen and len are with delta of eachother 
+bool compareLength( float EleLen, float len, float delta ){
+
+  if( abs( Elelen - len) <= delta ){
+    return true;
+  }
+  return false;
+}

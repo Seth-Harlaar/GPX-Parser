@@ -13,7 +13,7 @@
 #include <libxml/xmlschemastypes.h>
 #include "LinkedListAPI.h"
 
-// waypoint functions
+
 List * getWaypointsList( xmlNode * headNode, int mode );
 void addWaypoints( List * wptList, xmlNode * headNode, int mode );
 void parseWaypoint( Waypoint * newWpt, xmlNode * curNode );
@@ -53,6 +53,17 @@ bool checkDataList( List * dataList );
 bool checkWaypointList( List * wptList );
 bool checkRouteList( List * routeList );
 bool checkTrackList( List * trackList );
+
+
+// A2 mod 2 helpers
+float haversine( float latitude1, float longitude1, float latitude2, float longitude2 );
+
+// length calcs 
+float getLengthWaypoints( Waypoint * wpt1, Waypoint * wpt2 );
+float getLengthWaypointsList( List * wptsList );
+
+bool compareLength( float EleLen, float len, float delta );
+
 
 
 #endif

@@ -49,4 +49,4 @@ $(BIN)StructListDemo.o: $(SRC)StructListDemo.c
 
 ###################################################################################################
 test: $(SRC)mainTest.c $(BIN)libgpxparser.so $(BIN)liblist.so
-	$(CC) $(CFLAGS) -I$(XML_PATH) -I$(INC) $(SRC)mainTest.c -lxml2 -o mainTest $(BIN)GPXParser.o $(BIN)GPXhelpers.o $(BIN)LinkedListAPI.o
+	$(CC) $(CFLAGS) -I$(XML_PATH) -I$(INC) $(SRC)mainTest.c -lxml2 -o mainTest $(BIN)GPXParser.o $(BIN)GPXhelpers.o $(BIN)LinkedListAPI.o -lm

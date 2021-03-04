@@ -5,7 +5,6 @@
 #include <stdlib.h>
 
 
-
 // * * * * * * * * * * * * * * * * * * * * 
 // ********  GPXDoc Functions  ***********
 // * * * * * * * * * * * * * * * * * * * *
@@ -765,10 +764,92 @@ bool validateGPXDoc( GPXdoc * gpxDoc, char * gpxSchemaFile ){
 // * * * * * * * * * * * * * * * * * * * *
 
 float round10( float len ){
-
   // divide by 10 -> x 
-  float 
-  // 10 * x
-  // add 10 if len mod 10 is greater than 5
+  double y = len;
 
+  while( len -10 > 0 ){
+    len -= 10;
+  }
+
+  if( len >= 5){
+    y += 10;
+  }
+
+  y -= len;
+
+  return y;
+}
+
+float getRouteLen( const Route * rt ){
+  float returnLength;
+
+  // return 0 if the route is null
+  if( rt == NULL ){
+    return 0;
+  }
+
+  // get the length of the route, which is just a list of waypoints
+  if( getLength( rt->waypoints ) > 1 ){
+    returnLength = getLengthWaypointsList( rt->waypoints );
+  } else {
+    return 0;
+  }
+
+  return returnLength;
+}
+
+
+float getTrackLen( const Track * tr ){
+  float returnLength;
+
+  TrackSegment * curTrackSeg;
+  ListIterator trackSegIter;
+
+  // return 0 if the track is null
+  if( tr == NULL ){
+    return 0;
+  }
+
+  returnLength = 0;
+
+  // for each tracksegment in the track, if there is any
+  if( getLength( tr->segments ) != 0 ){
+    trackSegIter = createIterator( tr->segments );
+
+    for( curTrackSeg = nextElement( &trackSegIter ); curTrackSeg != NULL; curTrackSeg = nextElement( &trackSegIter ) ){
+      
+      // get the length of each individual trackSegment if there are more than one wpts in it
+      if( getLength( curTrackSeg->waypoints ) > 1 ){
+        returnLength += getLengthWaypointsList( curTrackSeg->waypoints );
+      }
+    }
+  }
+
+  return returnLength;
+}
+
+int numRoutesWithLength( cosnt GPXDoc * doc, float len, float delta ){
+  bool dataReturn;
+  bool wptReturn;
+
+  ListIterator routeIter;
+  Route * route;
+
+  if( doc == NULL || len < 0 || delta < 0 ){
+    return 0;
+  }
+
+  routeIter = createIterator( doc->routes );
+
+  for( route = nextElement( &routeIter ); route != NULL; route = nextElement( &routeIter ) ){
+    
+    // get the length of the route
+float getRouteLen( const Route * rt ){
+    
+
+    // compare the length
+bool compareLength( float EleLen, float len, float delta ){
+
+    
+  }
 }
