@@ -13,73 +13,27 @@
 // This function goes here bc it is so closely related to createGPXDoc
 // Other A2 functions are in the A2 section
 GPXdoc * createValidGPXdoc( char * fileName, char * gpxSchemaFile ){
-  
+  GPXdoc * returnDoc;
+
+  xmlDoc * doc;
+
   if( fileName == NULL || gpxSchemaFile == NULL ){
     return NULL;
   }
-  GPXdoc * returnDoc;
 
-  // check the validity of the file -- the code for this functionality was taken from one of the links provided by the professor in the 
-  // assignment description. Also found here: http://knol2share.blogspot.com/2009/05/validate-xml-against-xsd-in-c.html
-  xmlDocPtr doc;
-  xmlSchemaPtr schema = NULL;
-  xmlSchemaParserCtxtPtr ctxt;
-
-  xmlLineNumbersDefault(1);
-
-  ctxt = xmlSchemaNewParserCtxt(gpxSchemaFile);
-
-  xmlSchemaSetParserErrors(ctxt, (xmlSchemaValidityErrorFunc) fprintf, (xmlSchemaValidityWarningFunc) fprintf, stderr);
-  schema = xmlSchemaParse(ctxt);
-  xmlSchemaFreeParserCtxt(ctxt);
-
-  // get the doc
+  // get the document, pass it to the validator
   doc = xmlReadFile(fileName, NULL, 0);
+  
+  if( doc == NULL ){
+    return NULL;
+  } 
 
-  // check if readFile worked
-  if (doc == NULL){
-    fprintf(stderr, "Could not parse %s\n", fileName);
-    returnDoc = NULL;
-
+  // if the file is valid, create the gpx doc and then return it
+  if( validateTree( doc, gpxSchemaFile ) ){
+    return createGPXdoc( fileName );
   } else {
-    xmlSchemaValidCtxtPtr ctxt;
-    int ret;
-
-    ctxt = xmlSchemaNewValidCtxt(schema);
-    xmlSchemaSetValidErrors(ctxt, (xmlSchemaValidityErrorFunc) fprintf, (xmlSchemaValidityWarningFunc) fprintf, stderr);
-    ret = xmlSchemaValidateDoc(ctxt, doc);
-    
-    // check result of validation test
-    if (ret == 0){
-      // fail
-      returnDoc = NULL;
-    
-    } else if (ret > 0) {
-      // pass
-      returnDoc = createGPXdoc( fileName );
-
-    } else {
-      // error
-      printf("%s validation generated an internal error\n", fileName);
-      returnDoc = NULL;
-    }
-
-    xmlSchemaFreeValidCtxt(ctxt);
-    xmlFreeDoc(doc);
-
-    return returnDoc;
+    return NULL;
   }
-
-  // free the resource
-  if(schema != NULL)
-  xmlSchemaFree(schema);
-
-  xmlSchemaCleanupTypes();
-  xmlCleanupParser();
-  xmlMemoryDump();
-
-
-  return NULL;
 }
 
 // make the gpx doc
@@ -99,6 +53,8 @@ GPXdoc * createGPXdoc( char* fileName ){
   doc = xmlReadFile(fileName, NULL, 0);
 
   if( doc == NULL ){
+    xmlCleanupParser();
+    free( returnDoc );
     return NULL;
   }
 
@@ -707,14 +663,23 @@ Route * getRoute( const GPXdoc * doc, char * name ){
 // * * * * * * * * * * * * * * * * * * * *
 
 bool writeGPXdoc( GPXdoc * doc, char * fileName ){
+  int ret;
+  xmlDoc * printDoc;
+  
   // check args
   if( doc == NULL || fileName == NULL ){
     return false;
   }
 
-  // start writing to file
-  
+  // pass the input to docToDoc
+  printDoc = docToDoc( doc );
 
+  // save the returned document to file
+  ret = xmlSaveFormatFileEnc( fileName, returnDoc, "ISO-8859-1", 1);
 
-  return true;
+  if( ret != -1 ){
+    return true;
+  }
+  return false;
 }
+

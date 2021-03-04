@@ -463,9 +463,65 @@ int compareTrackSegList( List * firstList, List * secondList ){
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
 
 // validates a libxml tree
-bool validateTree( xmlDoc * doc ){
+bool validateTree( xmlDoc * doc, char * gpxSchemaFile ){
+  bool returnValue;
+  
+  int ret;
 
-  return false;
+  GPXdoc * returnDoc;
+
+  if( doc == NULL ){
+    returnValue = false;
+
+  } else {
+
+    // checks the validity of the file -- the code for this functionality was taken from one of the links provided by the professor in the 
+    // assignment description. Also found here: http://knol2share.blogspot.com/2009/05/validate-xml-against-xsd-in-c.html
+    xmlSchemaPtr schema = NULL;
+    xmlSchemaParserCtxtPtr ctxt;
+
+    xmlLineNumbersDefault(1);
+
+    ctxt = xmlSchemaNewParserCtxt(gpxSchemaFile);
+
+    xmlSchemaSetParserErrors(ctxt, (xmlSchemaValidityErrorFunc) fprintf, (xmlSchemaValidityWarningFunc) fprintf, stderr);
+    schema = xmlSchemaParse(ctxt);
+    xmlSchemaFreeParserCtxt(ctxt);
+
+    xmlSchemaValidCtxtPtr ctxt;
+
+    // validate the doc
+    ctxt = xmlSchemaNewValidCtxt(schema);
+    xmlSchemaSetValidErrors(ctxt, (xmlSchemaValidityErrorFunc) fprintf, (xmlSchemaValidityWarningFunc) fprintf, stderr);
+    ret = xmlSchemaValidateDoc(ctxt, doc);
+    
+    // check result of validation test
+    if (ret == 0){
+      // pass
+      returnValue = true;
+    
+    } else if (ret > 0) {
+      // fail
+      returnValue = false;
+
+    } else {
+      // error
+      returnValue = false;
+    }
+
+    xmlSchemaFreeValidCtxt(ctxt);
+    xmlFreeDoc(doc);
+
+    // free the resource
+    if(schema != NULL)
+    xmlSchemaFree(schema);
+
+    xmlSchemaCleanupTypes();
+    xmlCleanupParser();
+    xmlMemoryDump();
+  }
+  
+  return returnValue;
 
 }
 
@@ -484,7 +540,7 @@ xmlDoc * docToDoc( GPXdoc * gpxDoc ){
   rootNode = xmlNewNode( NULL, BAD_CAST "gpx" );
   xmlDocSetRootElement( returnDoc, rootNode );
 
-  // add all the root subdata here, creator, version, ns etc
+  // ********* add all the root subdata here, creator, version, ns etc *********
 
 
   // add all the waypoints if there are some
@@ -501,12 +557,6 @@ xmlDoc * docToDoc( GPXdoc * gpxDoc ){
   if( getLength( gpxDoc->tracks ) != 0 ){
     addTrackNodeList( rootNode, gpxDoc->tracks );
   }
-
-  // save the doc to a file for now to test but this should be removed later
-  xmlSaveFormatFileEnc( "output.gpx", returnDoc, "ISO-8859-1", 1);
-
-  // free and stuff
-
 
   return returnDoc;
 }
