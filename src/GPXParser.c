@@ -10,32 +10,6 @@
 // ********  GPXDoc Functions  ***********
 // * * * * * * * * * * * * * * * * * * * *
 
-// This function goes here bc it is so closely related to createGPXDoc
-// Other A2 functions are in the A2 section
-GPXdoc * createValidGPXdoc( char * fileName, char * gpxSchemaFile ){
-  GPXdoc * returnDoc;
-
-  xmlDoc * doc;
-
-  if( fileName == NULL || gpxSchemaFile == NULL ){
-    return NULL;
-  }
-
-  // get the document, pass it to the validator
-  doc = xmlReadFile(fileName, NULL, 0);
-  
-  if( doc == NULL ){
-    return NULL;
-  } 
-
-  // if the file is valid, create the gpx doc and then return it
-  if( validateTree( doc, gpxSchemaFile ) ){
-    return createGPXdoc( fileName );
-  } else {
-    return NULL;
-  }
-}
-
 // make the gpx doc
 GPXdoc * createGPXdoc( char* fileName ){
 
@@ -60,7 +34,9 @@ GPXdoc * createGPXdoc( char* fileName ){
 
   headNode = xmlDocGetRootElement(doc);
 
-  // get version and creator and namespace -- must be initialized
+  // get namespace -- must be initialized
+  xmlNs * nameSpace = headNode->ns;
+  strcpy( returnDoc->namespace, (char *) nameSpace->href );
 
   // this loop was taken from libxmlexample.c
   for( iterPoint = headNode->properties; iterPoint != NULL; iterPoint = iterPoint->next ){
@@ -69,16 +45,14 @@ GPXdoc * createGPXdoc( char* fileName ){
     char * attrName = (char *) iterPoint->name;
     char * cont  = (char *)(value->content);
 
-    // check if it is a lon or lan attribute, store the data if so 
+    // get creator 
     if( strcmp(attrName, "creator") == 0 ){
-      returnDoc->creator = malloc( sizeof(char) * strlen(cont) );
+      returnDoc->creator = malloc( sizeof(char) * strlen(cont) + 1 );
       strcpy( returnDoc->creator, cont );
     } else if( strcmp( attrName, "version" ) == 0 ){
-      returnDoc->version = strtod( (char *) doc->version, NULL );
+      returnDoc->version = strtod( cont, NULL );
     }
   }
-
-  strcpy( returnDoc->namespace, "" );
 
 
   // list of waypoints -- cannot be null, may be empty
@@ -97,7 +71,6 @@ GPXdoc * createGPXdoc( char* fileName ){
   returnDoc->tracks = tracks;
 
   xmlFreeDoc(doc);
-  xmlCleanupParser();
 
   return returnDoc;
 }
@@ -115,6 +88,7 @@ void deleteGPXdoc(GPXdoc* doc){
 
     // free the struct itself
     free(doc);
+    xmlCleanupParser();
   }
 }
 
@@ -662,6 +636,33 @@ Route * getRoute( const GPXdoc * doc, char * name ){
 // ********    A2 Functions    ***********
 // * * * * * * * * * * * * * * * * * * * *
 
+GPXdoc * createValidGPXdoc( char * fileName, char * gpxSchemaFile ){
+
+  xmlDoc * doc;
+
+  if( fileName == NULL || gpxSchemaFile == NULL ){
+    return NULL;
+  }
+
+  // get the document, pass it to the validator
+  doc = xmlReadFile(fileName, NULL, 0);
+  
+  if( doc == NULL ){
+    return NULL;
+  }
+
+  // if the file is valid, create the gpx doc and then return it
+  if( validateTree( doc, gpxSchemaFile ) ){
+    xmlCleanupParser();
+    xmlFreeDoc( doc );
+    return createGPXdoc( fileName );
+  } else {
+    xmlCleanupParser();
+    xmlFreeDoc( doc );
+    return NULL;
+  }
+}
+
 bool writeGPXdoc( GPXdoc * doc, char * fileName ){
   int ret;
   xmlDoc * printDoc;
@@ -675,7 +676,10 @@ bool writeGPXdoc( GPXdoc * doc, char * fileName ){
   printDoc = docToDoc( doc );
 
   // save the returned document to file
-  ret = xmlSaveFormatFileEnc( fileName, returnDoc, "ISO-8859-1", 1);
+  ret = xmlSaveFormatFileEnc( fileName, printDoc, "ISO-8859-1", 1);
+
+  xmlFreeDoc( printDoc );
+  xmlCleanupParser();
 
   if( ret != -1 ){
     return true;
@@ -683,3 +687,88 @@ bool writeGPXdoc( GPXdoc * doc, char * fileName ){
   return false;
 }
 
+// check proper xml format and proper gpxDoc constraints
+bool validateGPXDoc( GPXdoc * gpxDoc, char * gpxSchemaFile ){
+  bool validReturn;
+  bool wptReturn;
+  bool routeReturn;
+  bool trackReturn;
+
+  xmlDoc * xmlTree;
+  
+  // check args
+  if( gpxDoc == NULL || gpxSchemaFile == NULL ){
+    return false;
+  }
+
+  // turn the gpx doc into a xml doc
+  xmlTree = docToDoc( gpxDoc );
+
+  // check return
+  if( xmlTree == NULL ){
+    return false;
+  }
+  
+  // use validate tree
+  validReturn = validateTree( xmlTree, gpxSchemaFile );
+
+  if( !validReturn ){
+    return false;
+  }
+
+  // check constraints in gpxparser.h
+  // check gpxDoc variables
+  if( strcmp( gpxDoc->namespace, "") == 0 ){
+    // namespace is empty and therefore false
+    return false;
+  }
+
+  if( gpxDoc->creator != NULL ){
+    if( strcmp( gpxDoc->creator, "" ) == 0 ){
+      return false;
+    }
+  } else {
+    return false;
+  }
+
+  // check waypoints
+  wptReturn = checkWaypointList( gpxDoc->waypoints );
+  
+  if( !wptReturn ){
+    return false;
+  }
+
+  // check routes
+  routeReturn = checkRouteList( gpxDoc->routes );
+
+  if( !routeReturn ){
+    return false;
+  }
+
+  // check tracks
+  trackReturn = checkTrackList( gpxDoc->tracks );
+
+  if( !trackReturn ){
+    return false;
+  }
+
+  // cleanup
+  xmlFreeDoc( xmlTree );
+  xmlCleanupParser();
+
+  return true;
+}
+
+
+// * * * * * * * * * * * * * * * * * * * * 
+// *****    A2 Mod 2 Functions    ********
+// * * * * * * * * * * * * * * * * * * * *
+
+float round10( float len ){
+
+  // divide by 10 -> x 
+  float 
+  // 10 * x
+  // add 10 if len mod 10 is greater than 5
+
+}

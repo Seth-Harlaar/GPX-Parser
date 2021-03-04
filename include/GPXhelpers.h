@@ -40,11 +40,19 @@ int compareTrackSegList( List * firstList, List * secondList );
 xmlDoc * docToDoc( GPXdoc * gpxDoc );
 
 // supports for docToDoc
-void addWaypointNodeList( xmlNode * parentNode, List * wpts, int mode );
+void addWaypointNodeList( xmlNode * parentNode, List * wpts, int mode, xmlNs * ns );
 void addOtherDataNodeList( xmlNode * parentNode, List * dataList );
-void addRouteNodeList( xmlNode * parentNode, List * routes ); 
-void addTrackNodeList( xmlNode * parentNode, List * tracks);
+void addRouteNodeList( xmlNode * parentNode, List * routes, xmlNs * ns );
+void addTrackNodeList( xmlNode * parentNode, List * tracks, xmlNs * ns);
 
+bool validateTree( xmlDoc * doc, char * gpxSchemaFile );
+
+
+// supports for validateGPXDoc
+bool checkDataList( List * dataList );
+bool checkWaypointList( List * wptList );
+bool checkRouteList( List * routeList );
+bool checkTrackList( List * trackList );
 
 
 #endif

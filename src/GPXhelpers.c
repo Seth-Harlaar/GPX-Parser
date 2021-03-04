@@ -468,13 +468,10 @@ bool validateTree( xmlDoc * doc, char * gpxSchemaFile ){
   
   int ret;
 
-  GPXdoc * returnDoc;
-
   if( doc == NULL ){
     returnValue = false;
 
   } else {
-
     // checks the validity of the file -- the code for this functionality was taken from one of the links provided by the professor in the 
     // assignment description. Also found here: http://knol2share.blogspot.com/2009/05/validate-xml-against-xsd-in-c.html
     xmlSchemaPtr schema = NULL;
@@ -488,12 +485,12 @@ bool validateTree( xmlDoc * doc, char * gpxSchemaFile ){
     schema = xmlSchemaParse(ctxt);
     xmlSchemaFreeParserCtxt(ctxt);
 
-    xmlSchemaValidCtxtPtr ctxt;
+    xmlSchemaValidCtxtPtr ctxt2;
 
     // validate the doc
-    ctxt = xmlSchemaNewValidCtxt(schema);
-    xmlSchemaSetValidErrors(ctxt, (xmlSchemaValidityErrorFunc) fprintf, (xmlSchemaValidityWarningFunc) fprintf, stderr);
-    ret = xmlSchemaValidateDoc(ctxt, doc);
+    ctxt2 = xmlSchemaNewValidCtxt(schema);
+    xmlSchemaSetValidErrors(ctxt2, (xmlSchemaValidityErrorFunc) fprintf, (xmlSchemaValidityWarningFunc) fprintf, stderr);
+    ret = xmlSchemaValidateDoc(ctxt2, doc);
     
     // check result of validation test
     if (ret == 0){
@@ -509,8 +506,7 @@ bool validateTree( xmlDoc * doc, char * gpxSchemaFile ){
       returnValue = false;
     }
 
-    xmlSchemaFreeValidCtxt(ctxt);
-    xmlFreeDoc(doc);
+    xmlSchemaFreeValidCtxt(ctxt2);
 
     // free the resource
     if(schema != NULL)
@@ -522,7 +518,6 @@ bool validateTree( xmlDoc * doc, char * gpxSchemaFile ){
   }
   
   return returnValue;
-
 }
 
 // converts a GPXdoc to an xmlDoc
@@ -534,36 +529,56 @@ xmlDoc * docToDoc( GPXdoc * gpxDoc ){
 
   xmlDoc * returnDoc = NULL;
   xmlNode * rootNode = NULL;
+  xmlNs * newNameSpace;
 
+  // make a new doc
   returnDoc = xmlNewDoc( BAD_CAST "1.0" );
 
-  rootNode = xmlNewNode( NULL, BAD_CAST "gpx" );
+  // make a new node, set its namespace, and set it to root of the doc
+  rootNode = xmlNewNode( NULL , BAD_CAST "gpx" );
+  
+  newNameSpace = xmlNewNs( rootNode, BAD_CAST gpxDoc->namespace, NULL );
+  xmlSetNs( rootNode, newNameSpace );
+
   xmlDocSetRootElement( returnDoc, rootNode );
 
   // ********* add all the root subdata here, creator, version, ns etc *********
+  char * versionString = malloc( 50 );
+  sprintf( versionString, "%0.1f", gpxDoc->version );
+  xmlNewProp( rootNode, BAD_CAST "version", BAD_CAST versionString );
 
+  free( versionString );
+
+  xmlNewProp( rootNode, BAD_CAST "creator", BAD_CAST gpxDoc->creator );
 
   // add all the waypoints if there are some
   if( getLength( gpxDoc->waypoints ) != 0 ){
-    addWaypointNodeList( rootNode, gpxDoc->waypoints, 0 );
+    addWaypointNodeList( rootNode, gpxDoc->waypoints, 0, newNameSpace );
   }
 
   // add the routes if there are some
   if( getLength( gpxDoc->routes ) != 0 ){
-    addRouteNodeList( rootNode, gpxDoc->routes );
+    addRouteNodeList( rootNode, gpxDoc->routes, newNameSpace );
   }
 
   // add all the tracks if there are some
   if( getLength( gpxDoc->tracks ) != 0 ){
-    addTrackNodeList( rootNode, gpxDoc->tracks );
+    addTrackNodeList( rootNode, gpxDoc->tracks, newNameSpace );
   }
 
   return returnDoc;
 }
 
-void addTrackNodeList( xmlNode * parentNode, List * tracks){
 
-  if( parentNode != NULL && tracks != NULL ){
+
+
+// * * * * * * * * * * * * * * * * * * * * 
+// ******* Supports for docToDoc *********
+// * * * * * * * * * * * * * * * * * * * *
+
+void addTrackNodeList( xmlNode * parentNode, List * tracks, xmlNs * ns){
+
+  if( parentNode != NULL && tracks != NULL  && ns != NULL  ){
     Track * curTrack;
     TrackSegment * curTrackSeg;
 
@@ -576,7 +591,7 @@ void addTrackNodeList( xmlNode * parentNode, List * tracks){
     // loop through the track list
     for( curTrack = nextElement( &listIter ); curTrack != NULL; curTrack = nextElement( & listIter ) ){
 
-      newTrackNode = xmlNewNode( NULL, BAD_CAST "trk" );
+      newTrackNode = xmlNewNode( ns, BAD_CAST "trk" );
 
       // add the name node if the name is not just an empty string
       if( strcmp( curTrack->name, "" ) != 0 ){
@@ -595,11 +610,11 @@ void addTrackNodeList( xmlNode * parentNode, List * tracks){
         
         // for each track segment
         for( curTrackSeg = nextElement( &trackSegIter ); curTrackSeg != NULL; curTrackSeg = nextElement( &trackSegIter ) ){
-          newTrackSegNode = xmlNewNode( NULL, BAD_CAST "trk" );
+          newTrackSegNode = xmlNewNode( ns, BAD_CAST "trkseg" );
           
           // there should always be waypoints, but check anyway
           if( getLength( curTrackSeg->waypoints ) != 0 ){
-            addWaypointNodeList( newTrackSegNode, curTrackSeg->waypoints, 2 );
+            addWaypointNodeList( newTrackSegNode, curTrackSeg->waypoints, 2, ns );
           }
           xmlAddChild( newTrackNode, newTrackSegNode );
         }
@@ -610,9 +625,9 @@ void addTrackNodeList( xmlNode * parentNode, List * tracks){
   }
 }
 
-void addRouteNodeList( xmlNode * parentNode, List * routes ){
-  
-  if( parentNode != NULL && routes != NULL ){
+void addRouteNodeList( xmlNode * parentNode, List * routes, xmlNs * ns ){
+
+  if( parentNode != NULL && routes != NULL  && ns != NULL ){
     Route * curRoute;
     ListIterator listIter = createIterator( routes );
     
@@ -621,13 +636,13 @@ void addRouteNodeList( xmlNode * parentNode, List * routes ){
     // for every route in the list 
     for( curRoute = nextElement( &listIter ); curRoute != NULL; curRoute = nextElement( &listIter ) ){
 
-      newRouteNode = xmlNewNode( NULL, BAD_CAST "route" );
+      newRouteNode = xmlNewNode( ns, BAD_CAST "rte" );
 
       // add the name node if its not an empty string
       if( strcmp( curRoute->name, "") != 0 ){
         xmlNewChild( newRouteNode, NULL, BAD_CAST "name", BAD_CAST curRoute->name );
       }
-      
+
       // add the list of other data
       if( getLength( curRoute->otherData ) != 0 ){
         addOtherDataNodeList( newRouteNode, curRoute->otherData );
@@ -635,8 +650,10 @@ void addRouteNodeList( xmlNode * parentNode, List * routes ){
 
       // add the list of waypoints if there are any
       if( getLength( curRoute->waypoints ) != 0 ){
-        addWaypointNodeList( newRouteNode, curRoute->waypoints, 1 );
+        addWaypointNodeList( newRouteNode, curRoute->waypoints, 1, ns );
       }
+      
+      
 
       xmlAddChild( parentNode, newRouteNode );
     }
@@ -644,7 +661,7 @@ void addRouteNodeList( xmlNode * parentNode, List * routes ){
 }
 
 
-void addWaypointNodeList( xmlNode * parentNode, List * wpts, int mode ){
+void addWaypointNodeList( xmlNode * parentNode, List * wpts, int mode, xmlNs * ns ){
 
   char * lat;
   char * lon;
@@ -655,7 +672,7 @@ void addWaypointNodeList( xmlNode * parentNode, List * wpts, int mode ){
   ListIterator wptIter = createIterator( wpts );
   Waypoint * curWpt;
 
-  if( parentNode != NULL && wpts != NULL ){
+  if( parentNode != NULL && wpts != NULL  && ns != NULL  ){
     nameString = malloc( sizeof( char ) * 10 );
     if( mode == 0 ){
       sprintf( nameString, "wpt" );
@@ -669,8 +686,7 @@ void addWaypointNodeList( xmlNode * parentNode, List * wpts, int mode ){
     // for each wpt in the list make a new node and add it to the parent
     for( curWpt = nextElement( &wptIter ); curWpt != NULL; curWpt = nextElement( &wptIter ) ){
       
-
-      newWaypointNode = xmlNewNode( NULL, BAD_CAST nameString );
+      newWaypointNode = xmlNewNode( ns, BAD_CAST nameString );
 
       // get the lat and lon
       lat = malloc( 50 );
@@ -682,7 +698,7 @@ void addWaypointNodeList( xmlNode * parentNode, List * wpts, int mode ){
       // add them as properties
       xmlNewProp( newWaypointNode, BAD_CAST "lat", BAD_CAST lat );
       xmlNewProp( newWaypointNode, BAD_CAST "lon", BAD_CAST lon );
-
+      
       // add the other data for the waypoint
       if( getLength( curWpt->otherData ) != 0 ){
         addOtherDataNodeList( newWaypointNode, curWpt->otherData );
@@ -714,4 +730,195 @@ void addOtherDataNodeList( xmlNode * parentNode, List * dataList ){
       xmlNewChild( parentNode, NULL, BAD_CAST curData->name, BAD_CAST curData->value );
     }
   }
+}
+
+
+
+
+
+
+
+// * * * * * * * * * * * * * * * * * * * * 
+// **** Supports for validateGPXDoc  *****
+// * * * * * * * * * * * * * * * * * * * *
+
+
+bool checkTrackList( List * trackList ){
+  if( trackList == NULL ){
+    return false;
+  }
+
+  bool dataReturn;
+  bool wptReturn;
+
+  ListIterator listIter = createIterator( trackList );
+  Track * curTrack;
+
+  ListIterator trackSegIter;
+  TrackSegment * curTrackSeg;
+
+
+  // loop through the track list
+  for( curTrack = nextElement( &listIter ); curTrack != NULL; curTrack = nextElement( & listIter ) ){
+
+    // check the name node if the name is not just an empty string
+    if( curTrack->name == NULL ){
+      return false;
+    }
+         
+    // check the other data is there is any
+    if( curTrack->otherData == NULL ){
+      return false;
+    } else {
+      if( getLength( curTrack->otherData ) != 0 ){
+        dataReturn = checkDataList( curTrack->otherData );
+      
+        if( !dataReturn ){
+          return false;
+        }
+      }
+    }
+
+    // check the track segments if there are any
+    if( curTrack->segments == NULL ){
+      return false;
+    } else {
+      if( getLength( curTrack->segments) != 0 ){
+        trackSegIter = createIterator( curTrack->segments );
+        
+        // for each track segment
+        for( curTrackSeg = nextElement( &trackSegIter ); curTrackSeg != NULL; curTrackSeg = nextElement( &trackSegIter ) ){
+          
+          if( curTrackSeg->waypoints == NULL ){
+            return false;
+          } else {
+            // there should always be waypoints, but check anyway
+            if( getLength( curTrackSeg->waypoints ) != 0 ){
+              wptReturn = checkWaypointList( curTrackSeg->waypoints );
+
+              if( !wptReturn ){
+                return false;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return true;
+}
+
+
+bool checkRouteList( List * routeList ){
+
+  bool dataReturn;
+  bool wptReturn;
+
+  ListIterator routeIter;
+  Route * route;
+
+  if( routeList == NULL ){
+    return false;
+  }
+
+
+  routeIter = createIterator( routeList );
+
+  for( route = nextElement( &routeIter ); route != NULL; route = nextElement( &routeIter ) ){
+    // check name
+    if( route->name == NULL ){
+      return false;
+    }
+
+    // check wpts list
+    if( route->waypoints == NULL ){
+      return false;
+    } else {
+      if( getLength( route->waypoints ) != 0 ){
+        // check wpts
+        wptReturn = checkWaypointList( route->waypoints );
+
+        if( !wptReturn ){
+          return false;
+        }
+      }
+    }
+
+    // check otherData list
+    if( route->otherData == NULL ){
+      return false;
+    } else {
+      if( getLength( route->otherData ) != 0 ){
+        // check each otherData item
+        dataReturn = checkDataList( route->otherData );
+
+        if( !dataReturn ){
+          return false;
+        }
+      }
+    }
+  }
+
+  return true;
+}
+
+
+// validate waypoints, checks all waypoints in the list are within constraints of gpxParser.h description
+bool checkWaypointList( List * wptList ){
+  bool dataReturn;
+  
+  ListIterator wptIter;
+  Waypoint * wpt;
+
+  if( wptList == NULL ){
+    return false;
+  }
+
+  if( getLength( wptList ) != 0 ){
+    wptIter = createIterator( wptList );
+
+    // check values for each waypoint
+    for( wpt = nextElement( &wptIter ); wpt != NULL; wpt = nextElement( &wptIter ) ){
+      // check name
+      if( wpt->name == NULL ){
+        return false;
+      }
+
+      // check otherData list
+      if( wpt->otherData == NULL ){
+        return false;
+      } else {
+        if( getLength( wpt->otherData ) != 0 ){
+          // check each otherData item
+          dataReturn = checkDataList( wpt->otherData );
+
+          if( !dataReturn ){
+            return false;
+          }
+        }
+      }
+    }
+  } 
+
+  return true;
+}
+
+bool checkDataList( List * dataList ){
+  ListIterator dataIter;
+  GPXData * data;
+
+  if( dataList == NULL ){
+    return false;
+  }
+  if( getLength( dataList ) != 0 ){
+    dataIter = createIterator( dataList );
+
+    for( data = nextElement( &dataIter ); data != NULL; data = nextElement( &dataIter ) ){
+      if( strcmp( data->name, "") == 0 || strcmp( data->value, "") == 0 ){
+        return false;
+      }
+    }
+  }
+  return true;
 }
