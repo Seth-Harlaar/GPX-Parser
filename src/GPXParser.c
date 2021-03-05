@@ -933,7 +933,7 @@ bool isLoopRoute( const Route * rt, float delta ){
 
 
 bool isLoopTrack( const Track * tr, float delta ){
-
+  printf("loop track\n");
   bool compareReturn;
 
   int wptCount;
@@ -953,6 +953,9 @@ bool isLoopTrack( const Track * tr, float delta ){
   }
 
   wptCount = 0;
+  printf("loop track middle\n");
+
+  trackSegIter = createIterator( tr->segments );
 
   // check each track seg length
   for( curTrackSeg = nextElement( &trackSegIter ); curTrackSeg != NULL; curTrackSeg = nextElement( &trackSegIter ) ){
@@ -967,6 +970,8 @@ bool isLoopTrack( const Track * tr, float delta ){
     return false;
   }
 
+  // does not reach here
+
   // get first wpt from first track seg, last wpt from last track segment
   trackSeg1 = getFromFront( tr->segments );
   trackSeg2 = getFromBack( tr->segments );
@@ -979,6 +984,8 @@ bool isLoopTrack( const Track * tr, float delta ){
 
   // compare length
   compareReturn = compareLength( distance, 0, delta );
+
+  printf("loop track end\n");
 
   if( compareReturn ){
     return true;

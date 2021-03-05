@@ -952,9 +952,10 @@ float haversine( float latitude1, float longitude1, float latitude2, float longi
 float getLengthWaypoints( Waypoint * wpt1, Waypoint * wpt2 ){
   float length;
 
-  if( wpt1 == NULL && wpt2 == NULL ){
+  if( wpt1 == NULL || wpt2 == NULL ){
     return 0;
   }
+
 
   length = haversine( wpt1->latitude, wpt1->longitude, wpt2->latitude, wpt2->longitude );
 
@@ -972,6 +973,7 @@ float getLengthWaypointsList( List * wptsList ){
   if( wptsList == NULL ){
     return 0;
   }
+
   // make two iterators, one for curwpt, and one for the next element
   wptIter = createIterator( wptsList );
   secondIter = createIterator( wptsList );
@@ -989,8 +991,9 @@ float getLengthWaypointsList( List * wptsList ){
     // if there is a wpt after the current wpt
     if( wptNext != NULL ){
       // get length inbetween the wpt and the next one
-      totalLength += getLengthWaypoints( wpt, nextElement( &wptIter ) );
+      totalLength += getLengthWaypoints( wpt, wptNext );
     }
+    wptNext = nextElement( & secondIter );
   }
 
   return totalLength;
