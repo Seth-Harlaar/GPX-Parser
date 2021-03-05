@@ -252,6 +252,10 @@ void deleteRoute( void * data ){
   free(route);
 }
 
+void dummyDeleteRoute( void * data ){
+  // does nothing
+}
+
 char* routeToString( void* data ){
   Route * route = data;
 
@@ -319,6 +323,10 @@ void deleteTrack( void * data ){
   freeList( track->segments );
   freeList( track->otherData );
   free( track );
+}
+
+void dummyDeleteTrack( void * data ){
+  // does nothing
 }
 
 char* trackToString( void * data ){
@@ -991,4 +999,120 @@ bool isLoopTrack( const Track * tr, float delta ){
     return true;
   }
   return false;
+}
+
+
+List * getRoutesBetween( const GPXdoc * doc, float sourceLat, float sourceLong, float destLat, float destLong, float delta){
+
+  bool start;
+  bool end;
+
+  float startDif;
+  float endDif;
+
+  Waypoint * wpt;
+  Route * route;
+  ListIterator routeIter;
+
+  List * returnList;
+
+  if( doc == NULL ){
+    return NULL;
+  }
+
+  routeIter = createIterator( doc->routes );
+
+  //create the list first
+  returnList = initializeList( routeToString, dummyDeleteRoute, compareRoutes );
+
+  // loop through each route
+  for( route = nextElement( &routeIter ); route != NULL; route = nextElement( &routeIter ) ){
+    wpt = getFromFront( route->waypoints );
+    
+    // check if start matches start point provided
+    startDif = haversine( wpt->latitude, wpt->longitude, sourceLat, sourceLong );
+
+    wpt = getFromBack( route->waypoints );
+    // check if end matches end point provided
+    endDif = haversine( wpt->latitude, wpt->longitude, destLat, destLong );
+
+    start = compareLength( startDif, 0, delta );
+    end = compareLength( endDif, 0, delta );
+
+    if( start && end ){
+      // if true add the route to return list
+      insertBack( returnList, route );
+    }
+  }
+
+  // check length == 0, if so delete the list, return null
+  if( getLength( returnList ) == 0 ){
+    freeList( returnList );
+    return NULL;
+  }
+
+  return returnList;
+}
+
+
+List * getTracksBetween( const GPXdoc * doc, float sourceLat, float sourceLong, float destLat, float destLong, float delta ){
+  printf(" check 1\n");
+
+  bool start;
+  bool end;
+
+  float startDif;
+  float endDif;
+
+  Waypoint * wpt;
+  Track * track;
+  TrackSegment * trackSeg;
+  ListIterator trackIter;
+
+  List * returnList;
+
+  if( doc == NULL ){
+    return NULL;
+  }
+
+  trackIter = createIterator( doc->tracks );
+
+  returnList = initializeList( trackToString, dummyDeleteTrack, compareTracks );
+
+  printf(" check 2\n");
+
+  // loop through each track
+  for( track = nextElement( &trackIter ); track != NULL; track = nextElement( &trackIter ) ){
+
+    // get first wpt from first track seg
+    wpt = getFromFront( getFromFront( track->segments ) );
+    printf(" check 3\n");
+  
+    // check if start matches start point provided
+    startDif = haversine( wpt->latitude, wpt->longitude, sourceLat, sourceLong );
+
+    // get last wpt from last track seg
+    trackSeg = getFromBack( track->segments );
+    wpt = getFromBack( trackSeg->waypoints );
+
+    endDif = haversine( wpt->latitude, wpt->longitude, destLat, destLong );
+
+    start = compareLength( startDif, 0, delta );
+    end = compareLength( endDif, 0, delta );
+
+
+    if( start && end ){
+      // if true add the route to return list
+      insertBack( returnList, track );
+    }
+  }
+
+
+  // check length == 0, if so delete the list, return null
+  if( getLength( returnList ) == 0 ){
+    freeList( returnList );
+    return NULL;
+  }
+
+  return returnList;
 }
