@@ -999,7 +999,7 @@ float getLengthWaypointsList( List * wptsList ){
 // checks if Elelen and len are with delta of eachother 
 bool compareLength( float EleLen, float len, float delta ){
 
-  if( abs( Elelen - len) <= delta ){
+  if( abs( EleLen - len ) <= delta ){
     return true;
   }
   return false;

@@ -828,9 +828,12 @@ float getTrackLen( const Track * tr ){
   return returnLength;
 }
 
-int numRoutesWithLength( cosnt GPXDoc * doc, float len, float delta ){
-  bool dataReturn;
-  bool wptReturn;
+int numRoutesWithLength( const GPXdoc * doc, float len, float delta ){
+  bool compareReturn;
+  
+  int routes;
+
+  float routeLen;
 
   ListIterator routeIter;
   Route * route;
@@ -841,15 +844,144 @@ int numRoutesWithLength( cosnt GPXDoc * doc, float len, float delta ){
 
   routeIter = createIterator( doc->routes );
 
+  routes = 0;
+
   for( route = nextElement( &routeIter ); route != NULL; route = nextElement( &routeIter ) ){
     
     // get the length of the route
-float getRouteLen( const Route * rt ){
+    routeLen = getRouteLen( route );
     
-
     // compare the length
-bool compareLength( float EleLen, float len, float delta ){
+    compareReturn = compareLength( routeLen, len, delta );
 
-    
+    if( compareReturn ){
+      routes++;
+    }
   }
+  return routes;
+}
+
+
+int numTracksWithLength( const GPXdoc * doc, float len, float delta ){
+  bool compareReturn;
+  
+  int tracks;
+  float trackLen;
+
+  ListIterator listIter;
+  Track * curTrack;
+
+  if( doc == NULL || len < 0 || delta < 0 ){
+    return 0;
+  }
+
+  tracks = 0;
+
+  listIter = createIterator( doc->tracks );
+
+  // loop through the track list
+  if( getLength( doc->tracks ) != 0 ){
+    for( curTrack = nextElement( &listIter ); curTrack != NULL; curTrack = nextElement( &listIter ) ){
+
+      trackLen = getTrackLen( curTrack );
+
+      compareReturn = compareLength( trackLen, len, delta );
+
+      if( compareReturn ){
+        tracks++;
+      }      
+    }
+  }
+
+  return tracks;
+}
+
+
+bool isLoopRoute( const Route * rt, float delta ){
+
+  bool compareReturn;
+
+  float distance;
+
+  Waypoint * wpt1;
+  Waypoint * wpt2;
+
+  if( rt == NULL || delta < 0 ){
+    return false;
+  }
+
+  // check if has at least 4 waypoints
+  if( getLength( rt->waypoints ) < 4 ){
+    return false;
+  }
+
+  // get the first and last points
+  wpt1 = getFromFront( rt->waypoints );
+  wpt2 = getFromBack( rt->waypoints );
+  
+  // distance between them
+  distance = getLengthWaypoints( wpt1, wpt2 );
+
+  // compare length
+  compareReturn = compareLength( distance, 0, delta );
+
+  if( compareReturn ){
+    return true;
+  }
+  return false;
+}
+
+
+bool isLoopTrack( const Track * tr, float delta ){
+
+  bool compareReturn;
+
+  int wptCount;
+  float distance;
+
+  Waypoint * wpt1;
+  Waypoint * wpt2;
+
+  TrackSegment * trackSeg1;
+  TrackSegment * trackSeg2;
+
+  TrackSegment * curTrackSeg;
+  ListIterator trackSegIter;
+  
+  if( tr == NULL || delta < 0 ){
+    return false;
+  }
+
+  wptCount = 0;
+
+  // check each track seg length
+  for( curTrackSeg = nextElement( &trackSegIter ); curTrackSeg != NULL; curTrackSeg = nextElement( &trackSegIter ) ){
+    wptCount = getLength( curTrackSeg->waypoints );
+
+    if( wptCount >= 4 ){
+      curTrackSeg = NULL;
+    }
+  }
+
+  if( wptCount < 4 ){
+    return false;
+  }
+
+  // get first wpt from first track seg, last wpt from last track segment
+  trackSeg1 = getFromFront( tr->segments );
+  trackSeg2 = getFromBack( tr->segments );
+
+  wpt1 = getFromFront( trackSeg1->waypoints );
+  wpt2 = getFromBack( trackSeg2->waypoints );
+
+  // distance between them
+  distance = getLengthWaypoints( wpt1, wpt2 );
+
+  // compare length
+  compareReturn = compareLength( distance, 0, delta );
+
+  if( compareReturn ){
+    return true;
+  }
+  return false;
 }
