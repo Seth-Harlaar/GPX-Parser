@@ -941,7 +941,6 @@ bool isLoopRoute( const Route * rt, float delta ){
 
 
 bool isLoopTrack( const Track * tr, float delta ){
-  printf("loop track\n");
   bool compareReturn;
 
   int wptCount;
@@ -961,7 +960,6 @@ bool isLoopTrack( const Track * tr, float delta ){
   }
 
   wptCount = 0;
-  printf("loop track middle\n");
 
   trackSegIter = createIterator( tr->segments );
 
@@ -993,7 +991,6 @@ bool isLoopTrack( const Track * tr, float delta ){
   // compare length
   compareReturn = compareLength( distance, 0, delta );
 
-  printf("loop track end\n");
 
   if( compareReturn ){
     return true;
@@ -1056,7 +1053,6 @@ List * getRoutesBetween( const GPXdoc * doc, float sourceLat, float sourceLong, 
 
 
 List * getTracksBetween( const GPXdoc * doc, float sourceLat, float sourceLong, float destLat, float destLong, float delta ){
-  printf(" check 1\n");
 
   bool start;
   bool end;
@@ -1079,34 +1075,32 @@ List * getTracksBetween( const GPXdoc * doc, float sourceLat, float sourceLong, 
 
   returnList = initializeList( trackToString, dummyDeleteTrack, compareTracks );
 
-  printf(" check 2\n");
-
   // loop through each track
   for( track = nextElement( &trackIter ); track != NULL; track = nextElement( &trackIter ) ){
 
     // get first wpt from first track seg
-    wpt = getFromFront( getFromFront( track->segments ) );
-    printf(" check 3\n");
+    trackSeg = getFromFront( track->segments );
+    wpt = getFromFront( trackSeg->waypoints );
   
     // check if start matches start point provided
     startDif = haversine( wpt->latitude, wpt->longitude, sourceLat, sourceLong );
+
 
     // get last wpt from last track seg
     trackSeg = getFromBack( track->segments );
     wpt = getFromBack( trackSeg->waypoints );
 
+    // check if start matches start point provided
     endDif = haversine( wpt->latitude, wpt->longitude, destLat, destLong );
 
     start = compareLength( startDif, 0, delta );
     end = compareLength( endDif, 0, delta );
-
 
     if( start && end ){
       // if true add the route to return list
       insertBack( returnList, track );
     }
   }
-
 
   // check length == 0, if so delete the list, return null
   if( getLength( returnList ) == 0 ){
@@ -1116,3 +1110,134 @@ List * getTracksBetween( const GPXdoc * doc, float sourceLat, float sourceLong, 
 
   return returnList;
 }
+
+
+
+
+
+
+// * * * * * * * * * * * * * * * * * * * * 
+// *****    A2 Mod 3 Functions    ********
+// * * * * * * * * * * * * * * * * * * * *
+
+// tested for values and leaks
+char * routeToJSON( const Route * rt ){
+
+  char * returnString;
+  int strSize;
+
+  // need name, num points, length, loop status
+  char * name;
+  int numPoints;
+  float routeLen;
+  bool loopStat;
+
+  // set base size for required spaces, brackets etc
+  // "name":"","numPoints":,"len":,"loop":false}
+  strSize = 75;
+
+  returnString = malloc( strSize );
+
+  sprintf( returnString, "{}" );
+
+  if( rt == NULL ){
+    return returnString;
+  }
+
+  // get the name
+  if( strcmp( rt->name, "" ) == 0 ){
+    name = malloc( 10 );
+    strcpy( name, "None" );
+  
+  } else {
+    name = malloc( strlen( rt->name ) + 1 );
+    strcpy( name, rt->name );
+  }
+  strSize += strlen( name + 1);
+
+  // get the numPoints
+  numPoints = getLength( rt->waypoints );
+
+  // get the routeLen
+  routeLen = getRouteLen( rt );
+  routeLen = round10( routeLen );
+
+  // get the loopStat
+  loopStat = isLoopRoute( rt, 10 );
+
+  returnString = realloc( returnString, strSize );
+
+  // if its a loop
+  if( loopStat ){
+    sprintf(returnString, "{\"name\":\"%s\",\"numPoints\":%d,\"len\":%0.1f,\"loop\":true}", name, numPoints, routeLen );
+
+  // if its not
+  } else {
+    sprintf(returnString, "{\"name\":\"%s\",\"numPoints\":%d,\"len\":%0.1f,\"loop\":false}", name, numPoints, routeLen );
+  }
+
+  // clean up
+  free( name );
+
+  return returnString;
+}
+
+// tested for values and leaks
+char * trackToJSON( const Track * tr ){
+  char * returnString;
+  int strSize;
+
+  // need name, length, loop status
+  char * name;
+  float trackLen;
+  bool loopStat;
+
+  // set base size for required spaces, brackets etc
+  // "name":"","numPoints":,"len":,"loop":false}
+  strSize = 75;
+
+  returnString = malloc( strSize );
+
+  sprintf( returnString, "{}" );
+
+  if( tr == NULL ){
+    return returnString;
+  }
+
+  // get the name
+  if( strcmp( tr->name, "" ) == 0 ){
+    name = malloc( 10 );
+    strcpy( name, "None" );
+  
+  } else {
+    name = malloc( strlen( tr->name ) + 1 );
+    strcpy( name, tr->name );
+  }
+  strSize += strlen( name + 1);
+
+  // get trackLen
+  trackLen = getTrackLen( tr );
+  trackLen = round10( trackLen );
+
+  // get loop status
+  loopStat = isLoopTrack( tr, 10 );
+
+  returnString = realloc( returnString, strSize );
+
+  // if its a loop
+  if( loopStat ){
+    sprintf(returnString, "{\"name\":\"%s\",\"len\":%0.1f,\"loop\":true}", name, trackLen );
+
+  // if its not
+  } else {
+    sprintf(returnString, "{\"name\":\"%s\",\"len\":%0.1f,\"loop\":false}", name, trackLen );
+  }
+
+  // cleanup
+  free( name );
+
+  return returnString;
+}
+
+
+
