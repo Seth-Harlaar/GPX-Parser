@@ -771,6 +771,8 @@ bool validateGPXDoc( GPXdoc * gpxDoc, char * gpxSchemaFile ){
 // *****    A2 Mod 2 Functions    ********
 // * * * * * * * * * * * * * * * * * * * *
 
+// passes harness
+// works, no leaking
 float round10( float len ){
   // divide by 10 -> x 
   double y = len;
@@ -788,6 +790,8 @@ float round10( float len ){
   return y;
 }
 
+// passes harness
+// tested for values and leaks
 float getRouteLen( const Route * rt ){
   float returnLength;
 
@@ -806,12 +810,17 @@ float getRouteLen( const Route * rt ){
   return returnLength;
 }
 
-
+// tested for values and leaks
 float getTrackLen( const Track * tr ){
   float returnLength;
 
+  Waypoint * wpt1;
+  Waypoint * wpt2; 
+
   TrackSegment * curTrackSeg;
+  TrackSegment * secondTrackSeg;
   ListIterator trackSegIter;
+  ListIterator secondTrackSegIter;
 
   // return 0 if the track is null
   if( tr == NULL ){
@@ -823,19 +832,39 @@ float getTrackLen( const Track * tr ){
   // for each tracksegment in the track, if there is any
   if( getLength( tr->segments ) != 0 ){
     trackSegIter = createIterator( tr->segments );
+    secondTrackSegIter = createIterator( tr->segments );
+
+    // set second iter to second segment
+    secondTrackSeg = nextElement( &secondTrackSegIter );
+    secondTrackSeg = nextElement( &secondTrackSegIter );
 
     for( curTrackSeg = nextElement( &trackSegIter ); curTrackSeg != NULL; curTrackSeg = nextElement( &trackSegIter ) ){
       
       // get the length of each individual trackSegment if there are more than one wpts in it
       if( getLength( curTrackSeg->waypoints ) > 1 ){
+        // get the length of each individual tracksegment
         returnLength += getLengthWaypointsList( curTrackSeg->waypoints );
+        // also need the distance between each track segment
+        
+        // if there is a segment after the current one
+        if( secondTrackSeg != NULL ){
+          // last wpt of segment, and first wpt of next segment
+          wpt1 = getFromBack( curTrackSeg->waypoints );
+          wpt2 = getFromFront( secondTrackSeg->waypoints );
+
+          returnLength += getLengthWaypoints( wpt1, wpt2 );
+        }
       }
+
+      secondTrackSeg = nextElement( &secondTrackSegIter );
     }
   }
 
   return returnLength;
 }
 
+// passes harness
+// no leaks should be possible
 int numRoutesWithLength( const GPXdoc * doc, float len, float delta ){
   bool compareReturn;
   
@@ -854,6 +883,7 @@ int numRoutesWithLength( const GPXdoc * doc, float len, float delta ){
 
   routes = 0;
 
+  // for each route in the doc
   for( route = nextElement( &routeIter ); route != NULL; route = nextElement( &routeIter ) ){
     
     // get the length of the route
@@ -866,10 +896,12 @@ int numRoutesWithLength( const GPXdoc * doc, float len, float delta ){
       routes++;
     }
   }
+
   return routes;
 }
 
-
+// test for values and leaks
+// shouldnt be any memeory leaks
 int numTracksWithLength( const GPXdoc * doc, float len, float delta ){
   bool compareReturn;
   
@@ -939,7 +971,8 @@ bool isLoopRoute( const Route * rt, float delta ){
   return false;
 }
 
-
+// passes harness
+// no reason for leak
 bool isLoopTrack( const Track * tr, float delta ){
   bool compareReturn;
 
@@ -976,8 +1009,6 @@ bool isLoopTrack( const Track * tr, float delta ){
     return false;
   }
 
-  // does not reach here
-
   // get first wpt from first track seg, last wpt from last track segment
   trackSeg1 = getFromFront( tr->segments );
   trackSeg2 = getFromBack( tr->segments );
@@ -991,14 +1022,13 @@ bool isLoopTrack( const Track * tr, float delta ){
   // compare length
   compareReturn = compareLength( distance, 0, delta );
 
-
   if( compareReturn ){
     return true;
   }
   return false;
 }
 
-
+// passes harness
 List * getRoutesBetween( const GPXdoc * doc, float sourceLat, float sourceLong, float destLat, float destLong, float delta){
 
   bool start;
@@ -1138,9 +1168,8 @@ char * routeToJSON( const Route * rt ){
 
   returnString = malloc( strSize );
 
-  sprintf( returnString, "{}" );
-
   if( rt == NULL ){
+    sprintf( returnString, "{}" );
     return returnString;
   }
 
@@ -1198,9 +1227,8 @@ char * trackToJSON( const Track * tr ){
 
   returnString = malloc( strSize );
 
-  sprintf( returnString, "{}" );
-
   if( tr == NULL ){
+    sprintf( returnString, "{}" );
     return returnString;
   }
 
@@ -1240,4 +1268,330 @@ char * trackToJSON( const Track * tr ){
 }
 
 
+// tested for values and leaks
+char * routeListToJSON( const List * routeList ){
 
+  char * returnString;
+
+  Route * route;
+  Route * secondRoute;
+  ListIterator routeIter;
+  ListIterator secondRouteIter;
+
+  returnString = malloc( sizeof( char ) * 10 );
+
+  if( routeList == NULL || getLength( ( List * ) routeList ) == 0 ){
+    strcpy( returnString, "[]" );
+    return returnString;
+  }
+  
+  routeIter = createIterator( (List * ) routeList );
+  secondRouteIter = createIterator( (List * ) routeList );
+
+  strcpy( returnString, "[");
+
+  //move secondRouteIter to second route
+  secondRoute = nextElement( &secondRouteIter );
+  secondRoute = nextElement( &secondRouteIter );
+
+  // loop through each route
+  for( route = nextElement( &routeIter ); route != NULL; route = nextElement( &routeIter ) ){
+    // get the route JSON string
+    char * tempRouteString = routeToJSON( route );
+
+    // add its length plus a little bit to the over string length
+    int newLen = strlen( returnString ) + 10 + strlen( tempRouteString );
+
+    // reallocate space for the new string
+    returnString = realloc( returnString, newLen );
+
+    // add the new string
+    strcat( returnString, tempRouteString );
+
+    // if it is not the last route in the list, add the comma to sepereate each route JSON string
+    if( secondRoute != NULL ){
+      strcat( returnString, "," );
+    }
+    secondRoute = nextElement( &secondRouteIter );
+
+    free( tempRouteString );
+
+  }
+
+  strcat( returnString, "]" );
+
+  return returnString;
+}
+
+// tested for values and leaks
+char * trackListToJSON( const List * trackList ){
+  
+  char * returnString;
+
+  Track * track;
+  Track * secondTrack;
+  ListIterator trackIter;
+  ListIterator secondTrackIter;
+
+  returnString = malloc( sizeof( char ) * 10 );
+
+  if( trackList == NULL || getLength( ( List * ) trackList ) == 0 ){
+    strcpy( returnString, "[]" );
+    return returnString;
+  }
+  
+  strcpy( returnString, "[");
+
+  trackIter = createIterator( (List * ) trackList );
+  secondTrackIter = createIterator( (List * ) trackList );
+
+  //move secondTrackIter to second route
+  secondTrack = nextElement( &secondTrackIter );
+  secondTrack = nextElement( &secondTrackIter );
+
+  for( track = nextElement( &trackIter ); track != NULL; track = nextElement( &trackIter ) ){
+    // get the track JSON string
+    char * tempTrackString = trackToJSON( track );
+
+    // add the new length
+    int newLen = strlen( returnString ) + 10 + strlen( tempTrackString );
+
+    // reallocate space for the new string
+    returnString = realloc( returnString, newLen );
+
+    // add the new string
+    strcat( returnString, tempTrackString );
+
+    // if it is not the last track, add a comma
+    if( secondTrack != NULL ){
+      strcat(returnString, ",");
+    }
+
+    secondTrack = nextElement( &secondTrackIter );
+  
+    free( tempTrackString );
+  }
+
+  strcat( returnString, "]" );
+
+  return returnString;
+}
+
+// tested for values and leaks
+char * GPXtoJSON( const GPXdoc * gpx ){
+
+  char * returnString;
+  int strSize;
+
+  int wptCount;
+  int routeCount;
+  int trackCount;
+
+  // if gpx is null, return empty JSON string
+  returnString = malloc( sizeof( char ) * 10 );
+
+  if( gpx == NULL ){
+    strcpy( returnString, "{}" );
+    return returnString;
+  }
+
+  // "version":vers,"creator":"","numWaypoints":numW,"numRoutes":numR,"numTracks":numT}
+  strSize = 100;
+
+  strSize += ( strlen( gpx->creator ) + 1);
+
+  returnString = realloc( returnString, sizeof( char ) * strSize );
+
+  // get wpt, route, and track counts
+  wptCount    = getNumWaypoints( gpx );
+  routeCount  = getNumRoutes( gpx );
+  trackCount  = getNumTracks( gpx );
+
+  sprintf(returnString, "{\"version\":%0.1f,\"creator\":\"%s\",\"numWaypoints\":%d,\"numRoutes\":%d,\"numTracks\":%d}", gpx->version, gpx->creator, wptCount, routeCount, trackCount );
+  
+  return returnString;
+}
+
+// not tested
+void addWaypoint( Route * rt, Waypoint * pt ){
+  if( rt != NULL && pt != NULL ){
+    // add waypoint
+    insertBack( rt->waypoints, pt );
+  }
+}
+
+
+// not tested
+void addRoute( GPXdoc * doc, Route * rt ){
+  if( doc != NULL && rt != NULL ){
+    // add the route
+    insertBack( doc->routes, rt );
+  }
+}
+
+// tested for values and leaks
+GPXdoc * JSONtoGPX( const char * gpxString ){
+  
+  char * token;
+  char * versionPtr;
+  char * creatorPtr;
+  
+  GPXdoc * returnDoc;
+
+  if( gpxString == NULL ){
+    return NULL;
+  }
+
+  // create a copy of the string
+  char * string = malloc( sizeof( char ) * ( strlen( gpxString ) + 1 ) );
+  strcpy( string, gpxString );
+
+
+  // tokenize the gpxString by ","
+  token = strtok( string, "," );
+
+  // first token is version
+  versionPtr = strtok( token, ":" );
+  versionPtr = strtok( NULL, ":" );
+
+
+  // reset the string
+  strcpy( string, gpxString );
+
+  // get the second token, the creator
+  token = strtok( string, "," );
+  token = strtok( NULL, "," );
+
+  // get the creator string itself
+  creatorPtr = strtok( token, ":" );
+  creatorPtr = strtok( NULL, ":" );
+
+  // cleanup the creator string
+  creatorPtr = strchr( creatorPtr, '\"' );
+  creatorPtr += 1;
+  creatorPtr[ strlen( creatorPtr ) - 2 ] = '\0';
+  
+  // allocate a new gpxDoc and put in the data
+  returnDoc = malloc( sizeof( GPXdoc ) );
+  returnDoc->creator = malloc( sizeof( char ) * strlen( creatorPtr ) + 1 );
+
+  strcpy( returnDoc->creator, creatorPtr );
+  returnDoc->version = strtod( versionPtr, NULL );
+  strcpy( returnDoc->namespace, "http://www.topografix.com/GPX/1/1" );
+
+  // initialize the lists
+  List * wptList = initializeList( waypointToString, deleteWaypoint, compareWaypoints );
+  List * routeList = initializeList( routeToString, deleteRoute, compareWaypoints );
+  List * trackList = initializeList( trackToString, deleteTrack, compareTracks );
+
+  returnDoc->waypoints = wptList;
+  returnDoc->routes = routeList;
+  returnDoc->tracks = trackList;
+
+  free( string );
+
+  return returnDoc;
+}
+
+// tested for values and leaks
+Waypoint * JSONtoWaypoint( const char * gpxString ){
+  
+  char * token;
+  char * string;
+  char * lat;
+  char * lon;
+
+  double latValue;
+  double lonValue;
+
+  Waypoint * returnWpt;
+
+  if( gpxString == NULL ){
+    return NULL;
+  }
+
+  // create a copy of the string
+  string = malloc( sizeof( char ) * ( strlen( gpxString ) + 1 ) );
+  strcpy( string, gpxString );
+
+
+  // tokenize the gpxString by ","
+  token = strtok( string, "," );
+
+  // get the lattitude
+  lat = strtok( token, ":" );
+  lat = strtok( NULL, ":" );
+
+  latValue = strtod( lat, NULL );
+
+  strcpy( string, gpxString );
+  
+  // get the longitude 
+  token = strtok( string, "," );
+  token = strtok( NULL, "," );
+
+  // get the lattitude
+  lon = strtok( token, ":" );
+  lon = strtok( NULL, ":" );
+
+  lon[ strlen( lon ) - 1 ] = '\0';
+
+  lonValue = strtod( lon, NULL );
+
+
+  // malloc the wpt and input values
+  returnWpt = malloc( sizeof( Waypoint ) );
+
+  returnWpt->latitude = latValue;
+  returnWpt->longitude = lonValue;
+
+  // initalize the otherData list
+  List * otherDataList = initializeList(gpxDataToString, deleteGpxData, compareGpxData );
+  returnWpt->otherData = otherDataList;
+
+  // set the name to empty string
+  returnWpt->name = malloc( sizeof( char ) * 10 );
+
+  strcpy( returnWpt->name, "" );
+
+  free( string );
+  
+  return returnWpt;
+}
+
+
+// tested for values and leaks
+Route * JSONtoRoute( const char * gpxString ){
+
+  char * token;
+  char * string;
+
+  Route * returnRoute;  
+
+  if( gpxString == NULL ){
+    return NULL;
+  }
+
+  string = malloc( sizeof( char ) * strlen( gpxString ) + 1 );
+  strcpy( string, gpxString );
+
+  token = strtok( string, "\"" );
+  token = strtok( NULL, "\"" );
+  token = strtok( NULL, "\"" );
+  token = strtok( NULL, "\"" );
+
+  returnRoute = malloc( sizeof( Route ) );
+
+  returnRoute->name = malloc( sizeof( char ) * strlen( token ) + 1 );
+  strcpy( returnRoute->name, token );
+
+  List * otherDataList  = initializeList( gpxDataToString, deleteGpxData, compareGpxData );
+  returnRoute->otherData = otherDataList;
+
+  List * wptList        = initializeList( waypointToString, deleteWaypoint, compareWaypoints );
+  returnRoute->waypoints = wptList;
+
+
+  free( string );
+  return returnRoute;
+}
