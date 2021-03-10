@@ -1269,7 +1269,7 @@ char * trackToJSON( const Track * tr ){
 
 
 // tested for values and leaks
-char * routeListToJSON( const List * routeList ){
+char * routeListToJSON( const List * list ){
 
   char * returnString;
 
@@ -1280,13 +1280,13 @@ char * routeListToJSON( const List * routeList ){
 
   returnString = malloc( sizeof( char ) * 10 );
 
-  if( routeList == NULL || getLength( ( List * ) routeList ) == 0 ){
+  if( list == NULL || getLength( ( List * ) list ) == 0 ){
     strcpy( returnString, "[]" );
     return returnString;
   }
   
-  routeIter = createIterator( (List * ) routeList );
-  secondRouteIter = createIterator( (List * ) routeList );
+  routeIter = createIterator( (List * ) list );
+  secondRouteIter = createIterator( (List * ) list );
 
   strcpy( returnString, "[");
 
@@ -1324,7 +1324,7 @@ char * routeListToJSON( const List * routeList ){
 }
 
 // tested for values and leaks
-char * trackListToJSON( const List * trackList ){
+char * trackListToJSON( const List * list ){
   
   char * returnString;
 
@@ -1335,15 +1335,15 @@ char * trackListToJSON( const List * trackList ){
 
   returnString = malloc( sizeof( char ) * 10 );
 
-  if( trackList == NULL || getLength( ( List * ) trackList ) == 0 ){
+  if( list == NULL || getLength( ( List * ) list ) == 0 ){
     strcpy( returnString, "[]" );
     return returnString;
   }
   
   strcpy( returnString, "[");
 
-  trackIter = createIterator( (List * ) trackList );
-  secondTrackIter = createIterator( (List * ) trackList );
+  trackIter = createIterator( (List * ) list );
+  secondTrackIter = createIterator( (List * ) list );
 
   //move secondTrackIter to second route
   secondTrack = nextElement( &secondTrackIter );
