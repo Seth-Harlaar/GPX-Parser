@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd"
+version="1.1"
+creator="Topo Maps">
+<rte>
+    <name>Some route</name>
+    <desc>Some description</desc>
+    <rtept lat="44.595850" lon="-123.620950">
+        <name>Route Start</name>
+    </rtept>
+    <rtept lat="44.596100" lon="-123.620570"></rtept>
+    <rtept lat="44.597150" lon="-123.620220"></rtept>
+    <rtept lat="44.598150" lon="-123.620120"></rtept>
+    <rtept lat="44.595830" lon="-123.620940"></rtept>
+    <!-- 1 route with length of 540 delta 10, test with numRoutesWithLength -->
+    <!-- This is a loop route use delta of 10 when testing isLoopRoute -->
+    <!-- 1 route between (44.595850,-123.620950) (44.595830,-123.620940) delta 100 -->
+</rte>
+<trk>
+<name>Reynolds To  Rozh. parking lot To University Centre to Bookstore</name>
+    <trkseg>
+        <trkpt lat="43.530893" lon="-80.228928">
+        <ele>334.0</ele>
+        </trkpt>
+        <trkpt lat="43.531214" lon="-80.229021">
+        <ele>330.2</ele>
+        </trkpt>
+        <trkpt lat="43.5322" lon="-80.228675">
+        <ele>334.2</ele>
+        </trkpt>
+        <trkpt lat="43.532776" lon="-80.227996">
+        <ele>340.0</ele>
+        </trkpt>
+        <trkpt lat="43.532623" lon="-80.226235">
+        <ele>340.0</ele>
+        </trkpt>
+        <trkpt lat="43.532756" lon="-80.226043">
+        <ele>339.8</ele>
+        </trkpt>
+    </trkseg>
+    <trkseg>
+        <trkpt lat="43.53052988567084" lon="-80.22632769644653">
+        <ele>334.0</ele>
+        </trkpt>
+        <trkpt lat="43.53052988567084" lon="-80.22683892087349">
+        <ele>330.2</ele>
+        </trkpt>
+        <trkpt lat="43.53057349054294" lon="-80.22720279237737">
+        <ele>334.2</ele>
+        </trkpt>
+    </trkseg>
+    <trkseg>
+        <trkpt lat="43.53057349054294" lon="-80.22720279237737">
+        <desc>Back to Reyn</desc>
+        </trkpt>
+        <trkpt lat="43.530894" lon="-80.228823"></trkpt>
+    </trkseg>
+    <!-- 1 track with length 830 delta 50, test using numTracksWithLength -->
+    <!-- This is a loop track use delta of 10 when testing isLoopTrack -->
+    <!-- 1 track between (43.530893,-80.228928) (43.530894,-80.228823) with delta 100 -->
+</trk>
+</gpx>

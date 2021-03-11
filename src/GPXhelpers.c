@@ -974,6 +974,10 @@ float getLengthWaypointsList( List * wptsList ){
     return 0;
   }
 
+  if( getLength( wptsList )  <= 1 ){
+    return 0;
+  }
+
   // make two iterators, one for curwpt, and one for the next element
   wptIter = createIterator( wptsList );
   secondIter = createIterator( wptsList );

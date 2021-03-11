@@ -812,6 +812,8 @@ float getRouteLen( const Route * rt ){
 
 // tested for values and leaks
 float getTrackLen( const Track * tr ){
+  bool nextSeg = true;
+
   float returnLength;
 
   Waypoint * wpt1;
@@ -829,26 +831,44 @@ float getTrackLen( const Track * tr ){
 
   returnLength = 0;
 
-  // for each tracksegment in the track, if there is any
   if( getLength( tr->segments ) != 0 ){
+
     trackSegIter = createIterator( tr->segments );
     secondTrackSegIter = createIterator( tr->segments );
 
     // set second iter to second segment
-    secondTrackSeg = nextElement( &secondTrackSegIter );
+    curTrackSeg = nextElement( &trackSegIter );
     secondTrackSeg = nextElement( &secondTrackSegIter );
 
-    for( curTrackSeg = nextElement( &trackSegIter ); curTrackSeg != NULL; curTrackSeg = nextElement( &trackSegIter ) ){
-      
-      // get the length of each individual trackSegment if there are more than one wpts in it
-      if( getLength( curTrackSeg->waypoints ) > 1 ){
-        // get the length of each individual tracksegment
+    while( curTrackSeg != NULL ){
+      nextSeg = true;
+      secondTrackSeg = nextElement( &secondTrackSegIter );
+
+
+      if( getLength( curTrackSeg->waypoints ) != 0 ){
+
+        // get length of this track, add it
         returnLength += getLengthWaypointsList( curTrackSeg->waypoints );
-        // also need the distance between each track segment
-        
-        // if there is a segment after the current one
-        if( secondTrackSeg != NULL ){
-          // last wpt of segment, and first wpt of next segment
+
+        // length between this track seg and next
+        // move seconTrackSeg to the next segment with any wpts
+        while( nextSeg ){
+          if( secondTrackSeg == NULL ){
+            nextSeg = false;
+          } else {
+            if( getLength( secondTrackSeg->waypoints ) != 0 ){
+              nextSeg = false;
+            } else {
+              secondTrackSeg = nextElement( &secondTrackSegIter );
+            }
+          }
+        }
+
+        // if secondTrackSeg made it to null, it is at the end of the list, and therefore there are no more calcs to be made
+        if( secondTrackSeg == NULL ){
+          return returnLength;
+        } else {
+          // get wpts, calc distance
           wpt1 = getFromBack( curTrackSeg->waypoints );
           wpt2 = getFromFront( secondTrackSeg->waypoints );
 
@@ -856,7 +876,13 @@ float getTrackLen( const Track * tr ){
         }
       }
 
-      secondTrackSeg = nextElement( &secondTrackSegIter );
+      // move curTrackSeg to the next segment 
+      curTrackSeg = nextElement( &trackSegIter );
+
+      // keep moving curTrackSeg if length is 0, until one without length of 0 is found
+      while( getLength( curTrackSeg->waypoints ) == 0 ){
+        curTrackSeg = nextElement( &trackSegIter );
+      }
     }
   }
 
