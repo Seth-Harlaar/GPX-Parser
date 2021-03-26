@@ -93,7 +93,7 @@ app.get('/endpoint1', function(req , res){
 // send back a JSON obj containing all the gpx file data
 app.get('/retrieveFiles', function(req, res){
 
-  console.log('Request to retrieve files already on server');
+  console.log('Request to retrieve files on server');
 
   // read the name of every file the upload dir
   fs.readdir(path.join(__dirname+'/uploads/'), function( err, files) {

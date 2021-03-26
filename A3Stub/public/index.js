@@ -46,7 +46,7 @@ jQuery(document).ready(function() {
   });
 
   // event listener gpx view panel to update it whenever new gpx file is selected
-  $('#gpxViewPanelSelector').click(function(e){
+  $('#gpxViewPanelSelector').change(function(e){
 
     e.preventDefault();
 
@@ -67,12 +67,14 @@ jQuery(document).ready(function() {
         console.log( data );
         // for each route found add the components
         var i = 1;
+          
+        $('#gpxViewBody').empty();
 
         for( let route in data.gpxRoutesObject ){
           console.log( route );
           $('#gpxViewBody').append(
-            "<tr>" +
-              "<th scope='row' id='renameRoute' value='" + data.gpxRoutesObject[route].name + "'>" + 'Route ' + i + "</th>" +
+            "<tr id='true' value='" + data.gpxRoutesObject[route].name + "'>" +
+              "<th scope='row'>" + 'Route ' + i + "</th>" +
               "<td>" + data.gpxRoutesObject[route].name + "</td>" +
               "<td>" + data.gpxRoutesObject[route].numPoints + "</td>" +
               "<td>" + data.gpxRoutesObject[route].len + "</td>" +
@@ -105,8 +107,8 @@ jQuery(document).ready(function() {
         for( let track in data.gpxTracksObject ){
           console.log( track );
           $('#gpxViewBody').append(
-            "<tr>" +
-              "<th scope='row' id='renameTrack' value='" + data.gpxTracksObject[track].name + "'>" + 'Track ' + i + "</th>" +
+            "<tr id='false' value='" + data.gpxTracksObject[track].name + "'>" +
+              "<th scope='row'>" + 'Track ' + i + "</th>" +
               "<td>" + data.gpxTracksObject[track].name + "</td>" +
               "<td>" + data.gpxTracksObject[track].numPoints + "</td>" +
               "<td>" + data.gpxTracksObject[track].len + "</td>" +
@@ -125,7 +127,6 @@ jQuery(document).ready(function() {
   });
 
   $('#uploadForm').submit(function(e){
-    e.preventDefault();
 
     if( $('#fileInput')[0].files.length === 0 ){
       e.preventDefault();
@@ -140,8 +141,43 @@ jQuery(document).ready(function() {
 
     if( fileExtension != 'gpx' ){
       alert('Not a GPX file. ');
+      e.preventDefault();
+    }
+    console.log( 'file extension: ' + fileExtension );
+  });
+
+
+  // add listeners for routes/tracks in the gpx view panel to rename them
+  $(document).on('click', '#gpxViewBody tr', function(){
+    
+    var route = $(this).attr('id');
+    var name = $(this).attr('value');
+
+    if( route == 'true' ) {
+      // rename function for routes
+      $('#renameSpot').html(
+        '<div value="route">' + name + '</div>'
+      )
+
+    } else {
+      // rename function for tracks
+      $('#renameSpot').html(
+        '<div value="track">' + name + '</div>'
+      )
     }
 
-    console.log( fileExtension );
   });
+
+
+  // listener for changing name of a component
+
+  // check if value is track or route
+
+  // check for empty input
+  // check for track or route selected
+
+  // make call to right endpoint
+
+
+
 });
