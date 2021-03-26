@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Cis 2750 A3</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="CHANGE ME">
+  <meta name="keywords" content="CHANGE ME">
+  <meta name="author" content="CHANGE ME">
+  <!-- Load jquery, bootstrap -->
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" type="text/css" href="/style.css">
+  <!-- Custom CSS End -->
+</head>
+<body>
+
+  <div id="testerSpot"></div>
+  <h3 class="mt-4"> GPX File Parser </h3>
+
+
+  <!-- File Log Panel -->
+  <h4 class="mt-5">File Log Panel</h4>
+  <div class="table-responsive overflow-auto h-50">
+    <table class="table">
+      <thead class="thead-dark">
+        <tr>
+          <th scope="col"> File name (click to download) </th>
+          <th scope="col"> Version </th>
+          <th scope="col"> Creator </th>
+          <th scope="col"> Number of Waypoints </th>
+          <th scope="col"> Number of Routes </th>
+          <th scope="col"> Numer of Tracks </th>
+        </tr>
+      </thead>
+
+      <tbody id="filePanelBody">
+        <td colspan="6" class="text-center"> No files.</td>
+      </tbody>
+
+    </table>
+  </div>
+
+  <form class="mt-3" id="uploadForm" action="/upload" method="POST" uploadForm" enctype="multipart/form-data">
+    <div class="form-group">
+      <label for="exampleFormControlFile1"> Select GPX file to upload: </label>
+      <input type="file" class="form-control-file" id="fileInput" name="uploadFile">
+    </div>
+    <button type="submit" id="uploadFormButton" class="btn btn-info">Submit</button>
+  </form>
+
+  <hr class="mt-5"/>
+
+  <!-- GPX View Panel -->
+  <h4 class="mt-5">GPX View Panel</h4>  
+
+  <select class="form-select mt-4" id="gpxViewPanelSelector" aria-label="Default select example">
+    <option selected>None</option>
+  </select>
+
+  <div class="table-responsive overflow-auto h-50 mt-3">
+    <table class="table table-hover">
+      <thead class="thead-dark">
+        <tr>
+          <th scope="col"> Component </th>
+          <th scope="col"> Name </th>
+          <th scope="col"> Numer of Points </th>
+          <th scope="col"> Length </th>
+          <th scope="col"> Loop </th>
+          <th scope="col">  </th>
+        </tr>
+      </thead>
+
+      <tbody id="gpxViewBody">
+        <td colspan="5" class="text-center"> Currently no files </td>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- rename form -->
+  <h4 class="mt-1">Rename: <div id="renameSpot"></div> </h4>
+  <form>
+    <div class="form-group">
+      <label for="exampleFormControlInput1">Input Name:</label>
+      <input type="email" class="form-control" id="newElementName" placeholder="new name for element">
+    </div>
+  </form>
+
+ <!-- Other data table -->
+  <h4 class="mt-4">Other Data For: <div> Route 1 </div> </h4>
+
+  <div class="table-responsive overflow-auto h-50 mt-3">
+    <table class="table">
+      <thead class="thead-light">
+        <tr>
+          <th scope="col"> Name </th>
+          <th scope="col"> Value </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Otto</td>
+          <td>1</td>      
+        </tr>
+        <tr>
+          <td>Otto</td>
+          <td>1</td>      
+        </tr>
+        <tr>
+          <td>Otto</td>
+          <td>1</td>      
+        </tr>
+        <tr>
+          <td>Otto</td>
+          <td>1</td>      
+        </tr>
+        <tr>
+          <td>Otto</td>
+          <td>1</td>      
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="mt-5"/>
+
+  <!-- Create new GPX file -->
+  <h4 class="mt-5">Create New GPX File: </h4>
+  <form>
+    <div class="form-group">
+      <label for="exampleFormControlInput1"> Name: </label>
+      <input type="email" class="form-control" id="newElementName" placeholder="new name for GPX file">
+    </div>
+  <button type="submit" class="btn btn-info">Create GPX</button>
+  </form>
+  
+  <hr class="mt-5"/>
+  
+  <!-- Add new route  -->
+  <h4 class="mt-5"> Add Route to GPX file: <div>simple.gpx</div> </h4>
+
+  <form>
+    <div class="dropdown mt-4">
+      <button class="btn btn-info dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Select GPX file
+      </button>
+      <div class="dropdown-menu" id="addRouteSelector" aria-labelledby="dropdownMenuButton" >
+      </div>
+    </div>
+
+    <div class="row mt-3">
+      <div class="col">
+        <input type="text" class="form-control" placeholder="Number of Waypoints to Add">
+      </div>
+      <div class="col">
+        <button type="submit" class="btn btn-info">Add Waypoints</button>
+      </div>
+    </div>
+
+
+    <div class="form-group mt-3">
+      <label for="exampleFormControlInput1"> Name: </label>
+      <input type="text" class="form-control" id="newElementName" placeholder="new route name">
+    </div>
+
+    <h5 class="mt-4">Waypoint 1:</h5>
+    <input type="text" class="form-control" placeholder="New Waypoint Name">
+    <div class="row mt-3">
+      <div class="col">
+        <input type="text" class="form-control" placeholder="Latituide">
+      </div>
+      <div class="col">
+        <input type="text" class="form-control" placeholder="Longitude">
+      </div>
+    </div>
+  
+    <h5 class="mt-4">Waypoint 2:</h5>
+    <input type="text" class="form-control" placeholder="New Waypoint Name">
+    <div class="row mt-3">
+      <div class="col">
+        <input type="text" class="form-control" placeholder="Latituide">
+      </div>
+      <div class="col">
+        <input type="text" class="form-control" placeholder="Longitude">
+      </div>
+    </div>
+
+    <h5 class="mt-4">Waypoint 3:</h5>
+    <input type="text" class="form-control" placeholder="New Waypoint Name">
+    <div class="row mt-3">
+      <div class="col">
+        <input type="text" class="form-control" placeholder="Latituide">
+      </div>
+      <div class="col">
+        <input type="text" class="form-control" placeholder="Longitude">
+      </div>
+    </div>
+  
+    <button type="submit" class="btn btn-info mt-3">Add Route</button>
+  </form>
+
+
+  <!-- Find Path Between  -->
+  
+  
+  <!-- Find Path Between  -->
+
+
+  <!-- # routes with length x -->
+
+
+  <!-- Leave me at the bottom of body -->
+
+  <footer class="bg-dark text-center text-white mt-5"> </footer>
+
+  <script src="/index.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
