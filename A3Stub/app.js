@@ -168,3 +168,21 @@ app.get('/getTracks', function( req, res) {
 
 app.listen(portNum);
 console.log('Running app at localhost: ' + portNum);
+
+
+app.get('/getOtherData', function( req, res) {
+
+  var componentName = req.query.name;
+  var fileName = req.query.fileName;
+  var route = ( req.query.route == 'true');
+
+
+  if( route ){
+    // make the c function call to get the otherData JSON string for routes
+    console.log('getting other data for route named: ' + componentName + ' from: ' + fileName);
+  } else {
+    // make the c function call to get the otherData JSON string for tracks
+    console.log('getting other data for track named: ' + componentName + ' from: ' + fileName);
+
+  }
+});

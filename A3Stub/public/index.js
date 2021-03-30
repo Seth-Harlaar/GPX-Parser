@@ -55,6 +55,10 @@ jQuery(document).ready(function() {
 
     // send a request to get the JSON object representing all the components
     console.log('Making request for compenent data for: ' + dropDownName );
+
+    // reset the other data button and change name form
+
+
     $.ajax({
       type: 'get',
       dataType: 'json',
@@ -69,6 +73,7 @@ jQuery(document).ready(function() {
         var i = 1;
           
         $('#gpxViewBody').empty();
+
 
         for( let route in data.gpxRoutesObject ){
           console.log( route );
@@ -150,33 +155,123 @@ jQuery(document).ready(function() {
   // add listeners for routes/tracks in the gpx view panel to rename them
   $(document).on('click', '#gpxViewBody tr', function(){
     
-    var route = $(this).attr('id');
+    var route = ( $(this).attr('id') == 'true');
     var name = $(this).attr('value');
 
-    if( route == 'true' ) {
+    if( route ) {
       // rename function for routes
       $('#renameSpot').html(
         '<div value="route">' + name + '</div>'
       )
+      // set text and value
+      $('#otherDataButton').val('true');
+      $('#otherDataButton').text(name);
 
     } else {
       // rename function for tracks
       $('#renameSpot').html(
         '<div value="track">' + name + '</div>'
       )
+    
+      // set text and value
+      $('#otherDataButton').val('false');
+      $('#otherDataButton').text(name);
+
+    }
+  });
+
+  // listener for viewing other data of a component
+  $('#otherDataButton').click(function(e){
+    // get text
+    var name = $('#otherDataButton').text();
+
+    var fileName = $('#gpxViewPanelSelector').val();
+
+    console.log(fileName);
+
+    var route = ( $('#otherDataButton').attr('value') == 'true');
+
+    if( route ){
+      console.log( 'getting other data for route named: ' + name );
+    } else {
+      console.log( 'getting other data for track named: ' + name );
+    }
+
+    // check that value is not __none
+    if( $('#otherDataButton').attr('value') == '__none'){
+      alert('Please select a route from above first.');
+    } else {
+      // make request to endpoint
+
+      // if route
+      if( route ){
+        // if track
+        $.ajax({
+          type: 'get',
+          dataType: 'json',
+          url: '/getOtherData',
+          data: {
+            name: name,
+            fileName: fileName,
+            route: true
+
+          },
+
+          success: function( data ){
+            // make a string out of all the other data
+            
+            // alert the string
+          },
+
+          fail: function( error ){
+            console.log('Failed to get otherData for component: ' + name );
+            console.log( error );
+          }
+        });
+      } else {
+        // if track
+        $.ajax({
+          type: 'get',
+          dataType: 'json',
+          url: '/getOtherData',
+          data: {
+            name: name,
+            fileName: fileName,
+            route: false
+          },
+    
+          success: function( data ){
+        
+          },
+    
+          fail: function( error ){
+            console.log('Failed to get otherData for component: ' + name );
+            console.log( error );
+          }
+        });
+      }
+
+     
+
+
+
+      // get the data
+
+      // put it in a alert box
     }
 
   });
 
 
+
   // listener for changing name of a component
 
-  // check if value is track or route
+    // check if value is track or route
 
-  // check for empty input
-  // check for track or route selected
+    // check for empty input
+    // check for track or route selected
 
-  // make call to right endpoint
+    // make call to right endpoint  
 
 
 

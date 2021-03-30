@@ -1056,3 +1056,77 @@ char * gpxTracksToJSON( char * fileName ){
   // return the routes
   return returnString;
 }
+
+char * otherDataToJSON( GPXData * data ){
+  // name and value
+  char * returnString = malloc( sizeof( char ) * (256 + strlen(data->value) + 1) );
+
+  char * name = malloc( sizeof( char ) * ( 256 + 1 ) );
+  strcpy( name, data->name );
+
+  char * value = malloc( sizeof( char ) * ( strlen( data->value ) + 1 ) );
+  strcpy( value, data->value );
+
+  sprintf( returnString, "{\"name\":\"%s\",\"value\":\"%s\"}", name, value );
+
+  free( name );
+  free( value );
+
+  return returnString;
+}
+
+
+
+char * otherDataListToJSON( const List * otherDataList ){
+ 
+  char * returnString;
+
+  GPXData * route;
+  GPXData * secondRoute;
+  ListIterator routeIter;
+  ListIterator secondRouteIter;
+
+  returnString = malloc( sizeof( char ) * 10 );
+
+  if( list == NULL || getLength( ( List * ) list ) == 0 ){
+    strcpy( returnString, "[]" );
+    return returnString;
+  }
+  
+  routeIter = createIterator( (List * ) list );
+  secondRouteIter = createIterator( (List * ) list );
+
+  strcpy( returnString, "[");
+
+  //move secondRouteIter to second route
+  secondRoute = nextElement( &secondRouteIter );
+  secondRoute = nextElement( &secondRouteIter );
+
+  // loop through each route
+  for( route = nextElement( &routeIter ); route != NULL; route = nextElement( &routeIter ) ){
+    // get the route JSON string
+    char * tempRouteString = routeToJSON( route );
+
+    // add its length plus a little bit to the over string length
+    int newLen = strlen( returnString ) + 10 + strlen( tempRouteString );
+
+    // reallocate space for the new string
+    returnString = realloc( returnString, newLen );
+
+    // add the new string
+    strcat( returnString, tempRouteString );
+
+    // if it is not the last route in the list, add the comma to sepereate each route JSON string
+    if( secondRoute != NULL ){
+      strcat( returnString, "," );
+    }
+    secondRoute = nextElement( &secondRouteIter );
+
+    free( tempRouteString );
+
+  }
+
+  strcat( returnString, "]" );
+
+  return returnString;
+}
