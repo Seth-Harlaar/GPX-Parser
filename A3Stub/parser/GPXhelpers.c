@@ -1226,9 +1226,9 @@ char * addNewRoute( char * JSON, char * fileName ){
     return "false";
   }
   
+  bool success;
   // make a gpxDOc witht he fileName
   GPXdoc * doc = createValidGPXdoc( fileName, "gpx.xsd" );
-
   // validate
   bool valid = validateGPXDoc( doc, "gpx.xsd" );
 
@@ -1242,9 +1242,9 @@ char * addNewRoute( char * JSON, char * fileName ){
     bool valid = validateGPXDoc( doc, "gpx.xsd" );
 
     if( valid ){
-      bool success = writeGPXdoc( doc, fileName );
+      success = writeGPXdoc( doc, fileName );
     } else {
-      bool success = false;
+      success = false;
     }
 
     deleteGPXdoc( doc );
@@ -1258,4 +1258,155 @@ char * addNewRoute( char * JSON, char * fileName ){
     deleteGPXdoc( doc );
     return "false";
   }
+}
+
+
+
+// add a new wpt to a given route in a given file
+char * addWptToRoute( char * JSON, char * fileName, char * routeName ){
+  // make a new doc from file
+  GPXdoc * doc = createValidGPXdoc( fileName, "gpx.xsd" );
+
+  // validate it
+  bool valid = validateGPXDoc( doc, "gpx.xsd" );
+
+  if( valid ){
+    // find the route
+    Route * route = getRoute( doc, routeName );
+
+    if( route == NULL ){
+      return "false";
+    }
+
+    // make a new wpt from the json
+    Waypoint * newWpt = JSONtoWaypoint( JSON );
+
+    if( newWpt == NULL ){
+      return "false";
+    }
+
+    // add the wpt to the route
+    addWaypoint( route, newWpt );
+
+    // revalidate
+    valid = validateGPXDoc( doc, "gpx.xsd" );
+
+    if( valid ){
+      bool success = writeGPXdoc( doc, fileName );
+      deleteGPXdoc( doc );
+      if( success ){
+        return "true";
+      } else {
+        return "false";
+      }
+    
+    } else {
+      return "false";
+    }
+  } else {
+    return "false";
+  }
+}
+
+
+char * renameRoute( char * oldName, char * fileName, char * newName){
+
+  // make a doc
+  GPXdoc * doc = createValidGPXdoc( fileName, "gpx.xsd" );
+
+  // validate
+  bool valid = validateGPXDoc( doc, "gpx.xsd" );
+
+  if( !valid ){
+    return "false";
+  }
+
+  // find the route
+  Route * route = getRoute( doc, oldName );
+
+  if( route == NULL ){
+    return "false";
+  }
+
+  // change the name
+  route->name = realloc( route->name, strlen( newName ) + 1 );
+
+  strcpy( route->name, newName );
+
+  // revalidate
+  valid = validateGPXDoc( doc, "gpx.xsd" );
+
+  if( !valid ){
+    return "false";
+  }
+
+  // save the doc
+  bool success = writeGPXdoc( doc, fileName );
+
+  if( !success ){
+    return "false";
+  }
+
+  // cleanup and return
+  deleteGPXdoc( doc );
+  return "true";
+}
+
+
+
+char * renameTrack( char * oldName, char * fileName, char * newName){
+
+  // make a doc
+  GPXdoc * doc = createValidGPXdoc( fileName, "gpx.xsd" );
+
+  // validate
+  bool valid = validateGPXDoc( doc, "gpx.xsd" );
+
+  if( !valid ){
+    return "false";
+  }
+
+  // find the track
+  Track * track = getTrack( doc, oldName );
+
+  if( track == NULL ){
+    return "false";
+  }
+
+  // change the name
+  track->name = realloc( track->name, strlen( newName ) + 1 );
+
+  strcpy( track->name, newName );
+
+  // revalidate
+  valid = validateGPXDoc( doc, "gpx.xsd" );
+
+  if( !valid ){
+    return "false";
+  }
+
+  // save the doc
+  bool success = writeGPXdoc( doc, fileName );
+
+  if( !success ){
+    return "false";
+  }
+
+  // cleanup and return
+  deleteGPXdoc( doc );
+  return "true";
+}
+
+
+char * getRoutesBetween( char * fileName, float lat1, float lon1, float lat2, float lon2,  float tol ){
+  // make a doc out of the file
+  
+  // check valid
+
+  // find routes between two points
+
+  // convert list to JSON
+
+  // return list
+
 }

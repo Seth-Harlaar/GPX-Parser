@@ -28,8 +28,12 @@ var gpx = ffi.Library( './libgpxparser', {
   'gpxTracksToJSON': ['string', [ 'string' ]],
   'getOtherDataJSON': ['string', ['string', 'int', 'string']],
   'makeNewDoc': ['string', ['string', 'string']],
-  'addNewRoute': ['string', ['string', 'string']]
+  'addNewRoute': ['string', ['string', 'string']],
+  'addWptToRoute' : ['string', ['string', 'string', 'string']],
+  'renameRoute' : ['string', ['string', 'string', 'string']],
+  'renameTrack' : ['string', ['string', 'string', 'string']]
 });
+
 
 // Send HTML at root, do not change
 app.get('/',function(req,res){
@@ -273,23 +277,59 @@ app.get('/newRoute', function(req, res){
 
   // for each data
   for( let wpt in wpts){
+    // create a json obj with the data
     var wptData = {
       "lat":parseFloat(wpts[wpt].lat), 
       "lon":parseFloat(wpts[wpt].lon)
     }
     
     console.log('adding wpt to route: ' + newRouteName );
-
+    console.log( JSON.stringify(wptData) );
     
-  }
-
-  // create a json obj with the data
     // pass the json, and route and file to c wrapper function
+    success = gpx.addWptToRoute( JSON.stringify(wptData), path.join( __dirname + '/uploads/' + fileName ), newRouteName );
 
+  }
   console.log( success );
 
   res.send({
     success: success
   })
+});
 
+
+app.get('/renameRoute', function(req, res){
+
+  // need old track name and new track name and file name
+  var oldName = req.query.oldName;
+  var newName = req.query.newName;
+  var fileName = req.query.fileName;
+
+  console.log('Change name from ' + oldName + ' to ' + newName + ' in file ' +fileName );
+
+  // send to c function
+  var success = gpx.renameRoute( oldName, path.join( __dirname + '/uploads/' + fileName ), newName );
+
+
+  res.send({
+    success: success
+  })
+});
+
+
+app.get('/renameTrack', function(req, res){
+
+  // need old track name and new track name and file name
+  var oldName = req.query.oldName;
+  var newName = req.query.newName;
+  var fileName = req.query.fileName;
+
+  console.log('Change name from ' + oldName + ' to ' + newName + ' in file ' +fileName );
+
+  // send to c function
+  var success = gpx.renameTrack( oldName, path.join( __dirname + '/uploads/' + fileName ), newName );
+
+  res.send({
+    success: success
+  })
 });

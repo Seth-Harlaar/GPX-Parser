@@ -51,6 +51,12 @@
   <rte>
     <name>THis is the sixth route</name>
   </rte>
+  <rte>
+    <name>This is the newest route</name>
+    <rtept lat="45.550000" lon="46.666000"/>
+    <rtept lat="23.440000" lon="25.660000"/>
+    <rtept lat="2.444000" lon="5.666000"/>
+  </rte>
   <trk>
     <name>Track #1</name>
     <desc>Steep but continuous beaten path. From the Edwards Lake cabin continue east.

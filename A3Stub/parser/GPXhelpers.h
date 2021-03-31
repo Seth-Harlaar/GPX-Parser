@@ -71,6 +71,10 @@ char * gpxRoutesToJSON( char * fileName );
 char * getOtherDataJSON( char * fileName, int route, char * componentName );
 char * makeNewDoc( char * JSON, char * fileName ); 
 char * addNewRoute( char * fileName, char * JSON );
+char * addWptToRoute( char * fileName, char * JSON, char * routeName );
+char * renameRoute( char * oldName, char * fileName, char * newName);
+char * renameTrack( char * oldName, char * fileName, char * newName);
+
 
 
 

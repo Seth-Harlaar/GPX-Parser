@@ -1,4 +1,3 @@
-
 // send a request to get the file names
 // then prepopulate the data with each file's info
 function reloadFiles(){
@@ -14,6 +13,14 @@ function reloadFiles(){
       $('#filePanelBody').empty();
       $('#gpxViewPanelSelector').empty();
       $('#addRouteSelector').empty();
+      
+      $('#gpxViewPanelSelector').append(
+        '<option selected>Select a File</option>'
+      );
+
+      $('#addRouteSelector').append(
+        '<option selected>Select a File</option>'
+      );
 
       // for each gpxFile data returned
       for( let gpxFile in data.gpxFilesObject ){
@@ -53,6 +60,86 @@ function reloadFiles(){
 }
 
 
+function reloadViewPanel(){
+  // get the file selected from the dropdown menu
+  var dropDownName = $('#gpxViewPanelSelector').val();
+
+  // send a request to get the JSON object representing all the components
+  console.log('Making request for compenent data for: ' + dropDownName );
+
+  // reset the other data button and change name form
+  $.ajax({
+    type: 'get',
+    dataType: 'json',
+    url: '/getRoutes',
+    data: {
+      name: dropDownName
+    },
+
+    success: function( data ){
+      console.log( data );
+      // for each route found add the components
+      var i = 1;
+        
+      $('#gpxViewBody').empty();
+
+
+      for( let route in data.gpxRoutesObject ){
+        console.log( route );
+        $('#gpxViewBody').append(
+          "<tr id='true' value='" + data.gpxRoutesObject[route].name + "'>" +
+            "<th scope='row'>" + 'Route ' + i + "</th>" +
+            "<td>" + data.gpxRoutesObject[route].name + "</td>" +
+            "<td>" + data.gpxRoutesObject[route].numPoints + "</td>" +
+            "<td>" + data.gpxRoutesObject[route].len + "</td>" +
+            "<td>" + data.gpxRoutesObject[route].loop + "</td>" +
+          "</tr>"
+        );
+        i++;
+      }
+    },
+
+    fail: function( error ){
+      console.log('Failed to get routes for file:' + dropDownName );
+      console.log( error );
+    }
+  })
+
+  $.ajax({
+    type: 'get',
+    dataType: 'json',
+    url: '/getTracks',
+    data: {
+      name: dropDownName
+    },
+
+    success: function( data ){
+      console.log( data );
+      // for each route found add the components
+      var i = 1;
+
+      for( let track in data.gpxTracksObject ){
+        console.log( track );
+        $('#gpxViewBody').append(
+          "<tr id='false' value='" + data.gpxTracksObject[track].name + "'>" +
+            "<th scope='row'>" + 'Track ' + i + "</th>" +
+            "<td>" + data.gpxTracksObject[track].name + "</td>" +
+            "<td>" + data.gpxTracksObject[track].numPoints + "</td>" +
+            "<td>" + data.gpxTracksObject[track].len + "</td>" +
+            "<td>" + data.gpxTracksObject[track].loop + "</td>" +
+          "</tr>"
+        );
+        i++;
+      }
+    },
+
+    fail: function( error ){
+      console.log('Failed to get tracks for file:' + dropDownName );
+      console.log( error );
+    }
+  })
+}
+
 
 
 // Put all onload AJAX calls here, and event listeners
@@ -64,83 +151,7 @@ jQuery(document).ready(function() {
 
     e.preventDefault();
 
-    // get the file selected from the dropdown menu
-    var dropDownName = $('#gpxViewPanelSelector').val();
-
-    // send a request to get the JSON object representing all the components
-    console.log('Making request for compenent data for: ' + dropDownName );
-
-    // reset the other data button and change name form
-    $.ajax({
-      type: 'get',
-      dataType: 'json',
-      url: '/getRoutes',
-      data: {
-        name: dropDownName
-      },
-
-      success: function( data ){
-        console.log( data );
-        // for each route found add the components
-        var i = 1;
-          
-        $('#gpxViewBody').empty();
-
-
-        for( let route in data.gpxRoutesObject ){
-          console.log( route );
-          $('#gpxViewBody').append(
-            "<tr id='true' value='" + data.gpxRoutesObject[route].name + "'>" +
-              "<th scope='row'>" + 'Route ' + i + "</th>" +
-              "<td>" + data.gpxRoutesObject[route].name + "</td>" +
-              "<td>" + data.gpxRoutesObject[route].numPoints + "</td>" +
-              "<td>" + data.gpxRoutesObject[route].len + "</td>" +
-              "<td>" + data.gpxRoutesObject[route].loop + "</td>" +
-            "</tr>"
-          );
-          i++;
-        }
-      },
-
-      fail: function( error ){
-        console.log('Failed to get routes for file:' + dropDownName );
-        console.log( error );
-      }
-    })
-
-    $.ajax({
-      type: 'get',
-      dataType: 'json',
-      url: '/getTracks',
-      data: {
-        name: dropDownName
-      },
-
-      success: function( data ){
-        console.log( data );
-        // for each route found add the components
-        var i = 1;
-
-        for( let track in data.gpxTracksObject ){
-          console.log( track );
-          $('#gpxViewBody').append(
-            "<tr id='false' value='" + data.gpxTracksObject[track].name + "'>" +
-              "<th scope='row'>" + 'Track ' + i + "</th>" +
-              "<td>" + data.gpxTracksObject[track].name + "</td>" +
-              "<td>" + data.gpxTracksObject[track].numPoints + "</td>" +
-              "<td>" + data.gpxTracksObject[track].len + "</td>" +
-              "<td>" + data.gpxTracksObject[track].loop + "</td>" +
-            "</tr>"
-          );
-          i++;
-        }
-      },
-
-      fail: function( error ){
-        console.log('Failed to get tracks for file:' + dropDownName );
-        console.log( error );
-      }
-    })
+    reloadViewPanel();
   });
 
 
@@ -300,15 +311,6 @@ jQuery(document).ready(function() {
 
 
 
-  // listener for changing name of a component
-
-    // check if value is track or route
-
-    // check for empty input
-    // check for track or route selected
-
-    // make call to right endpoint  
-
 
   // listener for making new gpx file
 
@@ -368,6 +370,9 @@ jQuery(document).ready(function() {
     $('#addRouteDocLabel').value(fileName);
   });
 
+
+
+
   // update the information in the new route form -> add waypoints 
   $('#addWptsForm').submit(function(e){
     e.preventDefault();
@@ -390,10 +395,9 @@ jQuery(document).ready(function() {
         $('#wptsFormSpot').append(
           '<h5 class="mt-5"> Waypoint' + i + ':</h5>' +
           '<div id="newWpt">' +
-            '<input type="text" class="form-control" name="name" placeholder="New Waypoint Name">' +
             '<div class="row mt-3">' +
               '<div class="col">' +
-                '<input type="text" class="formm-control" name="lat" placeholder="Latitude">' +
+                '<input type="text" class="form-control" name="lat" placeholder="Latitude">' +
               '</div>' +
               '<div class="col">' +
                 '<input type="text" class="form-control" name="lon" placeholder="Longitude">' +
@@ -410,16 +414,17 @@ jQuery(document).ready(function() {
   $('#newRouteForm').submit(function(e){
     e.preventDefault();
 
+    var submit = true;
+
     var i = 0;
 
     // get the new route name and the file to add it to
     var fileName = $('#addRouteSelector').val();
 
-    var numWpts = parseInt( $('#wptsFormSpot') );
+    var newRouteName = $('#newRouteName').val();
     // get all the info out of the waypoint form
     
     var wptData = {};
-    var wptNames = [];
     var wptLat = [];
     var wptLon = [];
 
@@ -431,9 +436,14 @@ jQuery(document).ready(function() {
         wptData['newRouteName'] = item.value;
       } else {
 
-        if( item.name == 'name' ){
-          wptNames[i] = item.value;
-        } else if( item.name == 'lat' ){
+        var num = parseFloat( item.value );
+
+        if( isNaN(num) || num > 90.0 || num < -90.0 ){
+          submit = false;
+          alert('Input latitude/longitude must be a float between (and including) 90.0 and -90.0');
+        }
+
+        if( item.name == 'lat' ){
           wptLat[i] = item.value;
         } else if( item.name == 'lon' ){
           wptLon[i] = item.value;
@@ -444,9 +454,9 @@ jQuery(document).ready(function() {
 
     wptData['wpts'] = {};
 
-    for( i = 0; i < wptNames.length; i++ ){
+    for( i = 0; i < wptLat.length; i++ ){
+
       wptData.wpts['wpt' + i] = {
-        name: wptNames[i],
         lat: parseFloat(wptLat[i]),
         lon: parseFloat(wptLon[i])
       }
@@ -457,7 +467,7 @@ jQuery(document).ready(function() {
     if( !newRouteName ){
       alert( 'Please provide a name for the new route. ');
     
-    } else {
+    } else if( submit ) {
       $.ajax({
         type: 'get',
         dataType: 'json',
@@ -469,6 +479,7 @@ jQuery(document).ready(function() {
 
         success: function(data) {
           if( data.success == 'true' ){
+            reloadViewPanel();
             reloadFiles();
             console.log( 'successfully added new route to file');
           } else {
@@ -477,7 +488,116 @@ jQuery(document).ready(function() {
         }
       });
     }
-
-
   });
+
+
+
+  // listener for changing name of a component
+  $('#changeNameForm').submit(function(e){
+    e.preventDefault();
+
+    // check if value is track or route
+    var route = ( $('#otherDataButton').attr('value') == 'true');
+
+    var newName = $('#newElementName').val();
+    var oldName = $('#otherDataButton').text();
+
+    var fileName = $('#gpxViewPanelSelector').val();
+
+    // check for empty input
+    if( !newName ){
+      alert('Please input a new name'); 
+    
+    } else if( $('#otherDataButton').attr('value') == '__none' ){
+      alert('Please select a component first');
+    
+    } else {
+      // check for track or route selected
+      if( route ){
+        $.ajax({
+          type: 'get',
+          dataType: 'json',
+          url: '/renameRoute',
+          data :{
+            oldName: oldName,
+            newName: newName,
+            fileName: fileName
+          }, 
+
+          success: function( data ){
+            if( data.success == 'true' ){
+              reloadViewPanel();
+              console.log( 'successfully changed name of route ' );
+            } else {
+              alert('Failed to change name of route');
+            }
+          }
+        })
+
+      } else {
+        $.ajax({
+          type: 'get',
+          dataType: 'json',
+          url: '/renameTrack',
+          data :{
+            oldName: oldName,
+            newName: newName,
+            fileName: fileName
+          }, 
+
+          success: function( data ){
+            if( data.success == 'true' ){
+              reloadViewPanel();
+              console.log( 'successfully changed name of track ' );
+            } else {
+              alert('Failed to change name of track');
+            }
+          }
+        })
+      }
+    }
+  });
+
+
+  $('#pathBetweenForm').submit(function(e){
+    e.preventDefault();
+
+    // need lat long and tolerance
+    var lat1 = parseFloat( $('#inputLat1').val() );
+    var lon1 = parseFloat( $('#inputLon1').val() );
+    var lat2 = parseFloat( $('#inputLat2').val() );
+    var lon2 = parseFloat( $('#inputLon2').val() );
+    var tol = parseFloat( $('#inputTol').val() );
+
+    // check input
+    if( isNaN(lat1) || lat1 > 90.0 || lat1 < -90.0 || isNaN(lon1) || lon1 > 90.0 || lon1 < -90.0 || isNaN(tol) || isNaN(lat2) || lat2 > 90.0 || lat2 < -90.0 || isNaN(lon2) || lon2 > 90.0 || lon2 < -90.0 ){
+      alert('Input latitude/longitude must be a float between (and including) 90.0 and -90.0.\nTolerance must be a number');
+
+    } else {
+      // send the data
+      $.ajax({
+        type: 'get',
+          dataType: 'json',
+          url: '/pathsBetween',
+          data :{
+            lat: lat,
+            lon: lon,
+            tol: tol
+          }, 
+
+          success: function( data ){
+            if( data.success == 'true'){
+              console.log('successfully retrieved all routes/tracks between point');
+            } else {
+              alert('failed to find routes/tracks between point');
+            }
+          } 
+      })
+    }
+  });
+
+
+
 });
+
+
