@@ -1077,7 +1077,7 @@ char * otherDataToJSON( GPXData * data ){
 
 
 
-char * otherDataListToJSON( const List * otherDataList ){
+char * otherDataListToJSON( const List * list ){
  
   char * returnString;
 
@@ -1105,7 +1105,7 @@ char * otherDataListToJSON( const List * otherDataList ){
   // loop through each route
   for( route = nextElement( &routeIter ); route != NULL; route = nextElement( &routeIter ) ){
     // get the route JSON string
-    char * tempRouteString = routeToJSON( route );
+    char * tempRouteString = otherDataToJSON( route );
 
     // add its length plus a little bit to the over string length
     int newLen = strlen( returnString ) + 10 + strlen( tempRouteString );
@@ -1129,4 +1129,133 @@ char * otherDataListToJSON( const List * otherDataList ){
   strcat( returnString, "]" );
 
   return returnString;
+}
+
+
+char * getOtherDataJSON( char * fileName, int route, char * componentName ){
+  char * returnString;
+
+  ListIterator iter;
+  List * otherData = NULL;
+
+  // validate file and make a gpx doc
+  GPXdoc * doc = createValidGPXdoc( fileName, "gpx.xsd" );
+
+  // validate the doc
+  bool valid  = validateGPXDoc( doc , "gpx.xsd" );
+
+  if( valid ){
+    // check if route or track
+    // find the component
+    if( route == 1 ){
+      Route * route;
+      iter = createIterator( doc->routes );
+
+      for( route = nextElement( &iter ); route != NULL; route = nextElement( &iter ) ){
+        if( strcmp( route->name, componentName ) == 0 ){
+          // get the otherData List
+          otherData = route->otherData;
+        }
+      }
+
+    // if its a track
+    } else {
+      Track * track;
+      iter = createIterator( doc->tracks );
+
+      for( track = nextElement( &iter ); track != NULL; track = nextElement( &iter ) ){
+        if( strcmp( track->name, componentName ) == 0 ){
+          // get the otherData List
+          otherData = track->otherData;
+        }
+      }
+    }
+
+    // get the string
+    if( otherData != NULL ){
+      returnString = otherDataListToJSON( otherData );
+    } else {
+      printf(" null\n");
+      return "not found";
+    }
+
+  } else {
+    printf(" not valid\n ");
+    deleteGPXdoc( doc );
+    return "error";
+  }
+
+  deleteGPXdoc( doc );
+  return returnString;
+}
+
+
+// take a JSON string and save the corresponding gpx file to /uploads
+char * makeNewDoc( char * JSON, char * fileName ){
+  
+  if( JSON == NULL ){
+    return "false";
+  }
+  
+  // convert JSON to gpx -> JSONtoGPX()
+  GPXdoc * doc = JSONtoGPX( JSON) ;
+
+  // validate -> validate gpxDoc()
+  bool valid = validateGPXDoc( doc, "gpx.xsd" );
+
+  if( valid ){
+    // save the xmltree to file -> writeGPXDoc()
+    bool write = writeGPXdoc( doc, fileName );
+
+    if( write ){
+      return "true";
+    } else {
+      return "false write";
+    }
+
+  } else {
+    return "false valid";
+  }
+}
+
+
+
+// adding a new route to a file
+char * addNewRoute( char * JSON, char * fileName ){
+  if( fileName == NULL || JSON == NULL ){
+    return "false";
+  }
+  
+  // make a gpxDOc witht he fileName
+  GPXdoc * doc = createValidGPXdoc( fileName, "gpx.xsd" );
+
+  // validate
+  bool valid = validateGPXDoc( doc, "gpx.xsd" );
+
+  if( valid ){
+    // turn the JSON to a route
+    Route * newRoute = JSONtoRoute( JSON );
+
+    // add the new route to the gpxDoc
+    addRoute( doc, newRoute );
+
+    bool valid = validateGPXDoc( doc, "gpx.xsd" );
+
+    if( valid ){
+      bool success = writeGPXdoc( doc, fileName );
+    } else {
+      bool success = false;
+    }
+
+    deleteGPXdoc( doc );
+
+    if( valid && success ){
+      return "true";
+    } else {
+      return "false";
+    }
+  } else {
+    deleteGPXdoc( doc );
+    return "false";
+  }
 }

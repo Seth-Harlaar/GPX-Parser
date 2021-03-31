@@ -1,8 +1,8 @@
-// Put all onload AJAX calls here, and event listeners
-jQuery(document).ready(function() {
-  // send a request to get the file names
-  // then prepopulate the data with each file's info
-  jQuery.ajax({
+
+// send a request to get the file names
+// then prepopulate the data with each file's info
+function reloadFiles(){
+  $.ajax({
     type: 'get',
     dataType: 'json',
     url: '/retrieveFiles',
@@ -10,11 +10,15 @@ jQuery(document).ready(function() {
     success: function( data ){
 
       console.log("successfly recieved files from server for startup");
+      
+      $('#filePanelBody').empty();
+      $('#gpxViewPanelSelector').empty();
+      $('#addRouteSelector').empty();
 
       // for each gpxFile data returned
       for( let gpxFile in data.gpxFilesObject ){
         
-        console.log(gpxFile);
+        console.log( gpxFile );
         
         // add all the files to the file log panel
         $('#filePanelBody').append(
@@ -33,8 +37,9 @@ jQuery(document).ready(function() {
         $('#gpxViewPanelSelector').append(
           "<option value='" + gpxFile + "'>" + gpxFile + "</option>"
         );
+
         $('#addRouteSelector').append(
-          "<a class='dropdown-item' id='addRouteDropDownItem'>" + gpxFile + "</a>"
+          "<option value='" + gpxFile + "'>" + gpxFile + "</option>"
         ); 
       }
     }, 
@@ -44,6 +49,15 @@ jQuery(document).ready(function() {
       console.log(error);
     }
   });
+
+}
+
+
+
+
+// Put all onload AJAX calls here, and event listeners
+jQuery(document).ready(function() {
+  reloadFiles();
 
   // event listener gpx view panel to update it whenever new gpx file is selected
   $('#gpxViewPanelSelector').change(function(e){
@@ -57,8 +71,6 @@ jQuery(document).ready(function() {
     console.log('Making request for compenent data for: ' + dropDownName );
 
     // reset the other data button and change name form
-
-
     $.ajax({
       type: 'get',
       dataType: 'json',
@@ -131,6 +143,10 @@ jQuery(document).ready(function() {
     })
   });
 
+
+
+
+  // upload file form
   $('#uploadForm').submit(function(e){
 
     if( $('#fileInput')[0].files.length === 0 ){
@@ -150,6 +166,8 @@ jQuery(document).ready(function() {
     }
     console.log( 'file extension: ' + fileExtension );
   });
+
+
 
 
   // add listeners for routes/tracks in the gpx view panel to rename them
@@ -179,6 +197,11 @@ jQuery(document).ready(function() {
 
     }
   });
+
+
+
+
+
 
   // listener for viewing other data of a component
   $('#otherDataButton').click(function(e){
@@ -218,9 +241,18 @@ jQuery(document).ready(function() {
           },
 
           success: function( data ){
+            var alertString = 'Other data: \n';
             // make a string out of all the other data
-            
-            // alert the string
+            if( data.success == true ){
+
+              for( let stuff in data.content ){
+                alertString = alertString + "\n" + data.content[stuff].name + ": " + data.content[stuff].value;
+              }
+              alert( alertString );
+
+            } else {
+              alert('There was an error retrieving the other data');
+            }
           },
 
           fail: function( error ){
@@ -228,6 +260,8 @@ jQuery(document).ready(function() {
             console.log( error );
           }
         });
+
+      // if track
       } else {
         // if track
         $.ajax({
@@ -241,7 +275,18 @@ jQuery(document).ready(function() {
           },
     
           success: function( data ){
-        
+            var alertString = 'Other data: \n';
+            // make a string out of all the other data
+            if( data.success == true ){
+
+              for( let stuff in data.content ){
+                alertString = alertString + "\n" + data.content[stuff].name + ": " + data.content[stuff].value;
+              }
+              alert( alertString );
+
+            } else {
+              alert('There was an error retrieving the other data');
+            }
           },
     
           fail: function( error ){
@@ -250,16 +295,7 @@ jQuery(document).ready(function() {
           }
         });
       }
-
-     
-
-
-
-      // get the data
-
-      // put it in a alert box
     }
-
   });
 
 
@@ -274,5 +310,174 @@ jQuery(document).ready(function() {
     // make call to right endpoint  
 
 
+  // listener for making new gpx file
 
+  $('#createNewDocForm').submit(function(e){
+    e.preventDefault();
+
+    // get the file name, creator, and version
+    var fileName = $('#newDocName').val();
+    var creator = $('#newDocCreator').val();
+    // check that it is a double
+    var version = $('#newDocVersion').val();
+
+    // check first that file's extension is gpx
+    // solution to get extension found here: https://stackoverflow.com/questions/190852/how-can-i-get-file-extensions-with-javascript/1203361#1203361
+    var fileExtension = fileName.substring(fileName.lastIndexOf('.') + 1, fileName.length) || fileName;
+
+    if( fileExtension != 'gpx'){
+      alert('New File name must end in ".gpx"');
+    
+    } else if( isNaN(version) ){
+      alert('Version input must be a float');
+
+    } else {
+      $.ajax({
+        type: 'get',
+        dataType: 'json',
+        url: '/newDoc',
+        data: {
+          fileName: fileName,
+          creator: creator,
+          version: version
+        }, 
+        
+
+        success: function( data ){
+          reloadFiles();
+          alert('sucecss');
+        }, 
+  
+        fail: function( error ){
+          console.log( error );
+        }
+      })
+    }
+  });
+
+
+
+  // update the information in the new route form
+  $('#addRouteSelector').change(function(e){
+
+    var fileName = $('#addRouteSelector').val();
+
+    $('#addRouteDocLabel').html(
+      fileName
+    );
+    $('#addRouteDocLabel').value(fileName);
+  });
+
+  // update the information in the new route form -> add waypoints 
+  $('#addWptsForm').submit(function(e){
+    e.preventDefault();
+
+    $('#wptsFormSpot').empty();
+
+    var numWpts = parseInt( $('#numberOfWpts').val() );
+    var i;
+
+    if( numWpts < 0 || isNaN(numWpts) ){
+      alert('Please provide an integer greater than or equal to 0' );
+    } else {
+      console.log('adding ' + numWpts + ' waypoints' );
+      // set the value
+      $('#wptsFormSpot').append(
+        '<div id="wptsCountHolder" value="'+ numWpts +'"></div>'
+      );
+      // fill in with the form spots
+      for( i = 0; i < numWpts; i++ ){
+        $('#wptsFormSpot').append(
+          '<h5 class="mt-5"> Waypoint' + i + ':</h5>' +
+          '<div id="newWpt">' +
+            '<input type="text" class="form-control" name="name" placeholder="New Waypoint Name">' +
+            '<div class="row mt-3">' +
+              '<div class="col">' +
+                '<input type="text" class="formm-control" name="lat" placeholder="Latitude">' +
+              '</div>' +
+              '<div class="col">' +
+                '<input type="text" class="form-control" name="lon" placeholder="Longitude">' +
+              '</div>' +
+            '</div>' +
+          '</div>'
+        );
+      }
+    }
+  });
+
+
+
+  $('#newRouteForm').submit(function(e){
+    e.preventDefault();
+
+    var i = 0;
+
+    // get the new route name and the file to add it to
+    var fileName = $('#addRouteSelector').val();
+
+    var numWpts = parseInt( $('#wptsFormSpot') );
+    // get all the info out of the waypoint form
+    
+    var wptData = {};
+    var wptNames = [];
+    var wptLat = [];
+    var wptLon = [];
+
+    // for every div with id tag newWpt, get the info out and add it to wptData
+    var newRouteData = $('#newRouteForm').serializeArray();
+
+    newRouteData.forEach( item =>{
+      if( item.name == 'newRouteName' ){
+        wptData['newRouteName'] = item.value;
+      } else {
+
+        if( item.name == 'name' ){
+          wptNames[i] = item.value;
+        } else if( item.name == 'lat' ){
+          wptLat[i] = item.value;
+        } else if( item.name == 'lon' ){
+          wptLon[i] = item.value;
+          i++;
+        }
+      }
+    });
+
+    wptData['wpts'] = {};
+
+    for( i = 0; i < wptNames.length; i++ ){
+      wptData.wpts['wpt' + i] = {
+        name: wptNames[i],
+        lat: parseFloat(wptLat[i]),
+        lon: parseFloat(wptLon[i])
+      }
+    }
+
+    console.log( wptData );
+
+    if( !newRouteName ){
+      alert( 'Please provide a name for the new route. ');
+    
+    } else {
+      $.ajax({
+        type: 'get',
+        dataType: 'json',
+        url: '/newRoute',
+        data: {
+          wptData: wptData,
+          fileName: fileName
+        }, 
+
+        success: function(data) {
+          if( data.success == 'true' ){
+            reloadFiles();
+            console.log( 'successfully added new route to file');
+          } else {
+            alert('failed to add new route to file');
+          }
+        }
+      });
+    }
+
+
+  });
 });

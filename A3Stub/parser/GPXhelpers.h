@@ -68,6 +68,9 @@ bool compareLength( float EleLen, float len, float delta );
 // A3 functions
 char * gpxFileToJSON( char * fileName );
 char * gpxRoutesToJSON( char * fileName );
+char * getOtherDataJSON( char * fileName, int route, char * componentName );
+char * makeNewDoc( char * JSON, char * fileName ); 
+char * addNewRoute( char * fileName, char * JSON );
 
 
 

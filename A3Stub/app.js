@@ -15,6 +15,8 @@ app.use(express.static(path.join(__dirname+'/uploads')));
 // Minimization
 const fs = require('fs');
 const JavaScriptObfuscator = require('javascript-obfuscator');
+const { NONAME } = require('dns');
+const { stringify } = require('querystring');
 
 // Important, pass in port as in `npm run dev 1234`, do not change
 const portNum = process.argv[2];
@@ -23,10 +25,11 @@ const portNum = process.argv[2];
 var gpx = ffi.Library( './libgpxparser', {
   'gpxFileToJSON': ['string', [ 'string' ]],
   'gpxRoutesToJSON': ['string', [ 'string' ]],
-  'gpxTracksToJSON': ['string', [ 'string' ]]
+  'gpxTracksToJSON': ['string', [ 'string' ]],
+  'getOtherDataJSON': ['string', ['string', 'int', 'string']],
+  'makeNewDoc': ['string', ['string', 'string']],
+  'addNewRoute': ['string', ['string', 'string']]
 });
-
-
 
 // Send HTML at root, do not change
 app.get('/',function(req,res){
@@ -176,13 +179,117 @@ app.get('/getOtherData', function( req, res) {
   var fileName = req.query.fileName;
   var route = ( req.query.route == 'true');
 
+  let newPath = path.join( __dirname + '/uploads/' + fileName );
+
 
   if( route ){
     // make the c function call to get the otherData JSON string for routes
     console.log('getting other data for route named: ' + componentName + ' from: ' + fileName);
+
+    var otherData = gpx.getOtherDataJSON( newPath, 1, componentName );
   } else {
     // make the c function call to get the otherData JSON string for tracks
     console.log('getting other data for track named: ' + componentName + ' from: ' + fileName);
+    var otherData = gpx.getOtherDataJSON( newPath, 0, componentName );
 
   }
+
+  // take out all newlines because they cause errros
+  // method found here: https://stackoverflow.com/questions/10805125/how-to-remove-all-line-breaks-from-a-string
+  otherData = otherData.replace(/(\r\n|\n|\r)/gm, "");
+  console.log( otherData );
+
+  var sendData;
+
+  if( otherData == 'error' ){
+    res.send({
+      success: false,
+      content: 'none'
+    });
+  } else {
+    sendData = JSON.parse( otherData );
+    res.send({
+      success: true,
+      content: sendData
+    });
+  }
+});
+
+
+app.get('/newDoc', function(req, res){
+  console.log('post request to add new file');
+  var fileName = req.query.fileName;
+  var creator = req.query.creator;
+  var version = parseFloat( req.query.version );
+  
+  // check unique name
+  fs.readdir(path.join(__dirname+'/uploads/'), function( err, files) {
+    if( err == null ){
+      
+      files.forEach(file => {
+        // if its the same as one of the other files
+        if( file == fileName ){
+          // send a file
+          res.send({
+            success: false
+          });
+        }
+      });
+
+      // if its unique - call the c function to save file
+      var docData = {
+        "version":version,
+        "creator":creator
+      };
+
+      var result = gpx.makeNewDoc( JSON.stringify(docData), path.join( __dirname + '/uploads/' + fileName ));
+
+      res.send({
+        success: result
+      });
+      // validate file
+
+    }
+  });
+});
+
+
+app.get('/newRoute', function(req, res){
+
+  var newRouteName = req.query.wptData.newRouteName;
+  var fileName = req.query.fileName;
+
+  console.log('making new route with name: ' + newRouteName + ' in file: ' + fileName );
+
+  // make the c function call to add a new route
+  var routeData = {
+    "name":newRouteName
+  }
+
+  var success = gpx.addNewRoute( JSON.stringify(routeData), path.join( __dirname + '/uploads/' + fileName ) );
+
+  // now add the new other data to the new route
+  var wpts = req.query.wptData.wpts;
+
+  // for each data
+  for( let wpt in wpts){
+    var wptData = {
+      "lat":parseFloat(wpts[wpt].lat), 
+      "lon":parseFloat(wpts[wpt].lon)
+    }
+    
+    console.log('adding wpt to route: ' + newRouteName );
+
+    
+  }
+
+  // create a json obj with the data
+    // pass the json, and route and file to c wrapper function
+
+  console.log( success );
+
+  res.send({
+    success: success
+  })
+
 });

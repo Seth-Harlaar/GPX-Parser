@@ -16,6 +16,7 @@ xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/
     <rte>
         <name>Some route</name>
         <desc>Some description</desc>
+        <type>asdf</type>
         <rtept lat="44.595850" lon="-123.620950">
             <name>Route Start</name>
         </rtept>
