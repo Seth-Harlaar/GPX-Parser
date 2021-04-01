@@ -229,90 +229,95 @@ jQuery(document).ready(function() {
 
     var fileName = $('#gpxViewPanelSelector').val();
 
-    console.log(fileName);
 
-    var route = ( $('#otherDataButton').attr('value') == 'true');
-
-    if( route ){
-      console.log( 'getting other data for route named: ' + name );
+    if( fileName == 'Select a File' ){
+      alert('Please select a file from above');
     } else {
-      console.log( 'getting other data for track named: ' + name );
-    }
-
-    // check that value is not __none
-    if( $('#otherDataButton').attr('value') == '__none'){
-      alert('Please select a route from above first.');
-    } else {
-      // make request to endpoint
-
-      // if route
+      console.log(fileName);
+  
+      var route = ( $('#otherDataButton').attr('value') == 'true');
+  
       if( route ){
-        // if track
-        $.ajax({
-          type: 'get',
-          dataType: 'json',
-          url: '/getOtherData',
-          data: {
-            name: name,
-            fileName: fileName,
-            route: true
-
-          },
-
-          success: function( data ){
-            var alertString = 'Other data: \n';
-            // make a string out of all the other data
-            if( data.success == true ){
-
-              for( let stuff in data.content ){
-                alertString = alertString + "\n" + data.content[stuff].name + ": " + data.content[stuff].value;
-              }
-              alert( alertString );
-
-            } else {
-              alert('There was an error retrieving the other data');
-            }
-          },
-
-          fail: function( error ){
-            console.log('Failed to get otherData for component: ' + name );
-            console.log( error );
-          }
-        });
-
-      // if track
+        console.log( 'getting other data for route named: ' + name );
       } else {
-        // if track
-        $.ajax({
-          type: 'get',
-          dataType: 'json',
-          url: '/getOtherData',
-          data: {
-            name: name,
-            fileName: fileName,
-            route: false
-          },
-    
-          success: function( data ){
-            var alertString = 'Other data: \n';
-            // make a string out of all the other data
-            if( data.success == true ){
-
-              for( let stuff in data.content ){
-                alertString = alertString + "\n" + data.content[stuff].name + ": " + data.content[stuff].value;
+        console.log( 'getting other data for track named: ' + name );
+      }
+  
+      // check that value is not __none
+      if( $('#otherDataButton').attr('value') == '__none'){
+        alert('Please select a route from above first.');
+      } else {
+        // make request to endpoint
+  
+        // if route
+        if( route ){
+          // if track
+          $.ajax({
+            type: 'get',
+            dataType: 'json',
+            url: '/getOtherData',
+            data: {
+              name: name,
+              fileName: fileName,
+              route: true
+  
+            },
+  
+            success: function( data ){
+              var alertString = 'Other data: \n';
+              // make a string out of all the other data
+              if( data.success == true ){
+  
+                for( let stuff in data.content ){
+                  alertString = alertString + "\n" + data.content[stuff].name + ": " + data.content[stuff].value;
+                }
+                alert( alertString );
+  
+              } else {
+                alert('There was an error retrieving the other data');
               }
-              alert( alertString );
-
-            } else {
-              alert('There was an error retrieving the other data');
+            },
+  
+            fail: function( error ){
+              console.log('Failed to get otherData for component: ' + name );
+              console.log( error );
             }
-          },
-    
-          fail: function( error ){
-            console.log('Failed to get otherData for component: ' + name );
-            console.log( error );
-          }
-        });
+          });
+  
+        // if track
+        } else {
+          // if track
+          $.ajax({
+            type: 'get',
+            dataType: 'json',
+            url: '/getOtherData',
+            data: {
+              name: name,
+              fileName: fileName,
+              route: false
+            },
+      
+            success: function( data ){
+              var alertString = 'Other data: \n';
+              // make a string out of all the other data
+              if( data.success == true ){
+  
+                for( let stuff in data.content ){
+                  alertString = alertString + "\n" + data.content[stuff].name + ": " + data.content[stuff].value;
+                }
+                alert( alertString );
+  
+              } else {
+                alert('There was an error retrieving the other data');
+              }
+            },
+      
+            fail: function( error ){
+              console.log('Failed to get otherData for component: ' + name );
+              console.log( error );
+            }
+          });
+        }
       }
     }
   });
