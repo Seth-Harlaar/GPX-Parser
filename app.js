@@ -81,7 +81,6 @@ app.post('/upload', function(req, res) {
       console.log('Not adding file: ' + fileName + ' because one with the same name already exists on the server' );
       res.redirect('/');
     } else {
-      console.log('adding file: ' + fileName + ' because one with the same name already exists on the server' );
       // Use the mv() method to place the file somewhere on your server
       uploadFile.mv('uploads/' + uploadFile.name, function(err) {
         if(err) {
