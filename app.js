@@ -259,6 +259,8 @@ app.get('/newDoc', function(req, res){
   var creator = req.query.creator;
   var version = parseFloat( req.query.version );
   
+  var same = false;
+
   // check unique name
   fs.readdir(path.join(__dirname+'/uploads/'), function( err, files) {
     if( err == null ){
@@ -266,26 +268,26 @@ app.get('/newDoc', function(req, res){
       files.forEach(file => {
         // if its the same as one of the other files
         if( file == fileName ){
-          // send a file
-          res.send({
-            success: false
-          });
+          console.log('Cannot create another new file with same name as file already on server');
+          same = true;
         }
       });
 
-      // if its unique - call the c function to save file
-      var docData = {
-        "version":version,
-        "creator":creator
-      };
-
-      var result = gpx.makeNewDoc( JSON.stringify(docData), path.join( __dirname + '/uploads/' + fileName ));
-
-      res.send({
-        success: result
-      });
-      // validate file
-
+      if( same == false ){
+        // if its unique - call the c function to save file
+        var docData = {
+          "version":version,
+          "creator":creator
+        };
+  
+        var result = gpx.makeNewDoc( JSON.stringify(docData), path.join( __dirname + '/uploads/' + fileName ));
+  
+  
+        res.send({
+          success: result
+        });
+        // validate file
+      }
     }
   });
 });

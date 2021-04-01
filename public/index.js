@@ -360,7 +360,7 @@ jQuery(document).ready(function() {
 
         success: function( data ){
           reloadFiles();
-          alert('sucecss');
+          console.log('Successfully added new file to /uploads/');
         }, 
   
         fail: function( error ){
