@@ -65,14 +65,32 @@ app.post('/upload', function(req, res) {
   }
  
   let uploadFile = req.files.uploadFile;
- 
-  // Use the mv() method to place the file somewhere on your server
-  uploadFile.mv('uploads/' + uploadFile.name, function(err) {
-    if(err) {
-      return res.status(500).send(err);
-    }
+  var fileName = uploadFile.name;
 
-    res.redirect('/');
+  let add = true;
+
+  // get the file name, check all the names in the dir and see if there is one already in there
+  fs.readdir(path.join(__dirname+'/uploads/'), function( err, files) {
+    files.forEach( file => {
+      if( fileName == file ){
+        add = false;
+      }
+    });
+  
+    if( add == false ){
+      console.log('Not adding file: ' + fileName + ' because one with the same name already exists on the server' );
+      res.redirect('/');
+    } else {
+      console.log('adding file: ' + fileName + ' because one with the same name already exists on the server' );
+      // Use the mv() method to place the file somewhere on your server
+      uploadFile.mv('uploads/' + uploadFile.name, function(err) {
+        if(err) {
+          return res.status(500).send(err);
+        }
+    
+        res.redirect('/');
+      });
+    }
   });
 });
 
