@@ -2,8 +2,8 @@
 OFLAGS = -Wall -std=c11 -o $@ -c -g -I/usr/include/libxml2
 FLAGS = -Wall -std=c11  -pedantic -o $@ -g
 
-PARSER_SRC_FILES = $(wildcard GPX*.c)
-PARSER_OBJ_FILES = $(patsubst GPX%.c,GPX%.o,$(PARSER_SRC_FILES))
+PARSER_SRC_FILES = $(wildcard src/GPX*.c)
+PARSER_OBJ_FILES = $(patsubst src/GPX%.c,GPX%.o,$(PARSER_SRC_FILES))
 
 
 library: libgpxparser.so
@@ -21,11 +21,11 @@ liblist.so: LinkedListAPI.o
 
 
 
-LinkedListAPI.o: LinkedListAPI.c LinkedListAPI.h
-	gcc $(OFLAGS) -fpic LinkedListAPI.c
+LinkedListAPI.o: src/LinkedListAPI.c include/LinkedListAPI.h
+	gcc $(OFLAGS) -fpic src/LinkedListAPI.c -Isrc/ -Iinclude/
 
-GPX%.o: GPX%.c LinkedListAPI.h GPX*.h
-	gcc $(OFLAGS) -I/usr/include/libxml2 -fpic $<
+GPX%.o: src/GPX%.c include/LinkedListAPI.h include/GPX*.h
+	gcc $(OFLAGS) -I/usr/include/libxml2 -Iinclude/ -fpic $<
 
 
 clean: 
