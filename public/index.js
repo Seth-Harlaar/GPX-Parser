@@ -66,83 +66,86 @@ function reloadViewPanel(){
   // get the file selected from the dropdown menu
   var dropDownName = $('#gpxViewPanelSelector').val();
 
-  // send a request to get the JSON object representing all the components
-  console.log('Making request for compenent data for: ' + dropDownName );
-
-  // reset the other data button and change name form
-  $.ajax({
-    type: 'get',
-    dataType: 'json',
-    url: '/getRoutes',
-    data: {
-      name: dropDownName
-    },
-
-    success: function( data ){
-      console.log( data );
-      // for each route found add the components
-      var i = 1;
-        
-      $('#gpxViewBody').empty();
-
-      if( data.gpxRoutesObject.length != 0 ){
-        for( let route in data.gpxRoutesObject ){
-          console.log( route );
-          $('#gpxViewBody').append(
-            "<tr id='true' value='" + data.gpxRoutesObject[route].name + "'>" +
-              "<th scope='row'>" + 'Route ' + i + "</th>" +
-              "<td>" + data.gpxRoutesObject[route].name + "</td>" +
-              "<td>" + data.gpxRoutesObject[route].numPoints + "</td>" +
-              "<td>" + data.gpxRoutesObject[route].len + "</td>" +
-              "<td>" + data.gpxRoutesObject[route].loop + "</td>" +
-            "</tr>"
-          );
-          i++;
+  if( dropDownName != 'Select a File'){
+    // send a request to get the JSON object representing all the components
+    console.log('Making request for compenent data for: ' + dropDownName );
+  
+    // reset the other data button and change name form
+    $.ajax({
+      type: 'get',
+      dataType: 'json',
+      url: '/getRoutes',
+      data: {
+        name: dropDownName
+      },
+  
+      success: function( data ){
+        console.log( data );
+        // for each route found add the components
+        var i = 1;
+          
+        $('#gpxViewBody').empty();
+  
+        if( data.gpxRoutesObject.length != 0 ){
+          for( let route in data.gpxRoutesObject ){
+            console.log( route );
+            $('#gpxViewBody').append(
+              "<tr id='true' value='" + data.gpxRoutesObject[route].name + "'>" +
+                "<th scope='row'>" + 'Route ' + i + "</th>" +
+                "<td>" + data.gpxRoutesObject[route].name + "</td>" +
+                "<td>" + data.gpxRoutesObject[route].numPoints + "</td>" +
+                "<td>" + data.gpxRoutesObject[route].len + "</td>" +
+                "<td>" + data.gpxRoutesObject[route].loop + "</td>" +
+              "</tr>"
+            );
+            i++;
+          }
         }
+      },
+  
+      fail: function( error ){
+        console.log('Failed to get routes for file:' + dropDownName );
+        console.log( error );
       }
-    },
-
-    fail: function( error ){
-      console.log('Failed to get routes for file:' + dropDownName );
-      console.log( error );
-    }
-  })
-
-  $.ajax({
-    type: 'get',
-    dataType: 'json',
-    url: '/getTracks',
-    data: {
-      name: dropDownName
-    },
-
-    success: function( data ){
-      console.log( data );
-      // for each route found add the components
-      var i = 1;
-
-      if( data.gpxTracksObject.length != 0 ){
-        for( let track in data.gpxTracksObject ){
-          console.log( track );
-          $('#gpxViewBody').append(
-            "<tr id='false' value='" + data.gpxTracksObject[track].name + "'>" +
-              "<th scope='row'>" + 'Track ' + i + "</th>" +
-              "<td>" + data.gpxTracksObject[track].name + "</td>" +
-              "<td>" + data.gpxTracksObject[track].numPoints + "</td>" +
-              "<td>" + data.gpxTracksObject[track].len + "</td>" +
-              "<td>" + data.gpxTracksObject[track].loop + "</td>" +
-            "</tr>"
-          );
-          i++;
+    })
+  
+    $.ajax({
+      type: 'get',
+      dataType: 'json',
+      url: '/getTracks',
+      data: {
+        name: dropDownName
+      },
+  
+      success: function( data ){
+        console.log( data );
+        // for each route found add the components
+        var i = 1;
+  
+        if( data.gpxTracksObject.length != 0 ){
+          for( let track in data.gpxTracksObject ){
+            console.log( track );
+            $('#gpxViewBody').append(
+              "<tr id='false' value='" + data.gpxTracksObject[track].name + "'>" +
+                "<th scope='row'>" + 'Track ' + i + "</th>" +
+                "<td>" + data.gpxTracksObject[track].name + "</td>" +
+                "<td>" + data.gpxTracksObject[track].numPoints + "</td>" +
+                "<td>" + data.gpxTracksObject[track].len + "</td>" +
+                "<td>" + data.gpxTracksObject[track].loop + "</td>" +
+              "</tr>"
+            );
+            i++;
+          }
         }
+      },
+  
+      fail: function( error ){
+        console.log('Failed to get tracks for file:' + dropDownName );
+        console.log( error );
       }
-    },
+    })
+  }
 
-    fail: function( error ){
-      console.log('Failed to get tracks for file:' + dropDownName );
-      console.log( error );
-    }
-  })
 }
 
 
