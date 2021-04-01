@@ -1,6 +1,8 @@
 // send a request to get the file names
 // then prepopulate the data with each file's info
 function reloadFiles(){
+  var valid; 
+
   $.ajax({
     type: 'get',
     dataType: 'json',
@@ -24,9 +26,7 @@ function reloadFiles(){
 
       // for each gpxFile data returned
       for( let gpxFile in data.gpxFilesObject ){
-        
-        console.log( gpxFile );
-        
+
         // add all the files to the file log panel
         $('#filePanelBody').append(
           "<tr>" + 
@@ -48,6 +48,8 @@ function reloadFiles(){
         $('#addRouteSelector').append(
           "<option value='" + gpxFile + "'>" + gpxFile + "</option>"
         ); 
+        
+        console.log( gpxFile );
       }
     }, 
 
@@ -56,8 +58,8 @@ function reloadFiles(){
       console.log(error);
     }
   });
-
 }
+
 
 
 function reloadViewPanel(){
@@ -575,6 +577,8 @@ jQuery(document).ready(function() {
     e.preventDefault();
 
     var submit = true;
+    var i = 1;
+    var j = 1;
 
     // need lat long and tolerance
     var lat1 = parseFloat( $('#inputLat1').val() );
@@ -612,7 +616,7 @@ jQuery(document).ready(function() {
           // make a request for each
           for( let gpxFile in data.gpxFilesObject ){
 
-            // send the data
+            // send the data to get routes
             $.ajax({
               type: 'get',
                 dataType: 'json',
@@ -625,16 +629,82 @@ jQuery(document).ready(function() {
                   lon2: lon2,
                   tol: tol
                 }, 
-      
+                
                 success: function( data ){
+                  // if it works
                   if( data.success == true){
-                    console.log('successfully retrieved all routes/tracks between point');
+                    // if there is data
+                    if( data.empty != true ){
+                      // empty the table
+                      
+                      // for each route found in the data
+                      for( let route in data.routeData ){
+
+                        console.log( data.routeData[route] );
+                        // add it to the table as a row
+                        $('#routesBetweenViewBody').append(
+                          "<tr id='true' value='" + data.routeData[route].name + "'>" +
+                            "<th scope='row'>" + 'Route ' + i + "</th>" +
+                            "<td>" + data.routeData[route].name + "</td>" +
+                            "<td>" + data.routeData[route].numPoints + "</td>" +
+                            "<td>" + data.routeData[route].len + "</td>" +
+                            "<td>" + data.routeData[route].loop + "</td>" +
+                          "</tr>"
+                        );
+                        i++;
+                      }
+                    }
                     console.log( data );
                   } else {
-                    alert('failed to find routes/tracks between point');
+                    alert('failed to find routes between points');
                   }
                 } 
             });
+
+            // get the data for all the tracks
+            $.ajax({
+              type: 'get',
+              dataType: 'json',
+              url: '/pathsBetweenTracks',
+              data: {
+                fileName: gpxFile,
+                  lat1: lat1,
+                  lat2: lat2,
+                  lon1: lon1,
+                  lon2: lon2,
+                  tol: tol
+              },
+
+              // 
+              success: function( data ){
+                // if it worked
+                if( data.success == true ){
+                  // if there is data
+                  if( data.empty != true ){
+
+                    // for each track found in the data
+                    for( let track in data.trackData ){
+
+                      console.log( data.trackData[track] );
+                      // add it to the table as a row
+                      $('#routesBetweenViewBody').append(
+                        "<tr id='true' value='" + data.trackData[track].name + "'>" +
+                          "<th scope='row'>" + 'Track ' + j + "</th>" +
+                          "<td>" + data.trackData[track].name + "</td>" +
+                          "<td>" + data.trackData[track].numPoints + "</td>" +
+                          "<td>" + data.trackData[track].len + "</td>" +
+                          "<td>" + data.trackData[track].loop + "</td>" +
+                        "</tr>"
+                      );
+                      i++;
+                    }
+
+                  }
+                } else {
+                  alert('failed to find tracks between points');
+                }
+              }
+            })
           }
         }
       })

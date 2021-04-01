@@ -1413,7 +1413,7 @@ char * routesBetweenToJSON( char * fileName, float lat1, float lon1, float lat2,
   List * routes = getRoutesBetween( doc, lat1, lon1, lat2, lon2, tol );
 
   if( routes == NULL ){
-    return "{\"invalid\":\"false\"}";
+    return "[]";
   }
 
   // convert list to JSON
@@ -1443,7 +1443,7 @@ char * tracksBetweenToJSON( char * fileName, float lat1, float lon1, float lat2,
   List * tracks = getTracksBetween( doc, lat1, lon1, lat2, lon2, tol );
 
   if( tracks == NULL ){
-    return "{\"invalid\":\"false\"}";
+    return "[]";
   }
 
   // convert list to JSON
@@ -1455,4 +1455,17 @@ char * tracksBetweenToJSON( char * fileName, float lat1, float lon1, float lat2,
 
   // return list
   return JSON;
+}
+
+
+char * validateGPXFile( char * fileName ){
+  GPXdoc * doc = createValidGPXdoc( fileName, "gpx.xsd" );
+
+  bool valid = validateGPXDoc( doc, "gpx.xsd" );
+
+  if( valid ){
+    return "true";
+  } else {
+    return "false";
+  }
 }

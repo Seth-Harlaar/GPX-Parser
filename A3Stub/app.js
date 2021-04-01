@@ -33,7 +33,8 @@ var gpx = ffi.Library( './libgpxparser', {
   'renameRoute' : ['string', ['string', 'string', 'string']],
   'renameTrack' : ['string', ['string', 'string', 'string']],
   'routesBetweenToJSON': ['string', ['string', 'float', 'float', 'float', 'float', 'float']],
-  'tracksBetweenToJSON': ['string', ['string', 'float', 'float', 'float', 'float', 'float']]
+  'tracksBetweenToJSON': ['string', ['string', 'float', 'float', 'float', 'float', 'float']],
+  'validateGPXFile' : ['string', ['string']]
 });
 
 
@@ -119,11 +120,22 @@ app.get('/retrieveFiles', function(req, res){
         var fileExtension = file.substring(file.lastIndexOf('.') + 1, file.length) || file;
 
         if( fileExtension == 'gpx' ){
-          // get the JSON string from c code and parse it to json
-          var gpxObject = JSON.parse(gpx.gpxFileToJSON( path.join( __dirname + '/uploads/' + file) ));
-          
-          // add it to the object
-          gpxFilesObject[file] = gpxObject;
+          // check if its valid first
+          // make the path
+          var newPath = path.join( __dirname + '/uploads/' + file );
+
+          // validate by passing to c function
+          var valid = gpx.validateGPXFile( newPath );
+
+          console.log(file + ' was valid: ' + valid );
+          // onyl if its valid
+          if( valid == 'true' ){
+            // get the JSON string from c code and parse it to json
+            var gpxObject = JSON.parse(gpx.gpxFileToJSON( path.join( __dirname + '/uploads/' + file) ));
+            
+            // add it to the object
+            gpxFilesObject[file] = gpxObject;
+          }
         }
       });
 
@@ -346,19 +358,87 @@ app.get('/pathsBetweenRoutes', function(req, res){
   var lat2 = req.query.lat2;
   var tol  = req.query.tol;
 
-  console.log(req.query);
+  //console.log(req.query);
 
-  console.log('searching for routes/tracks between: ' + lat1 + '/' + lon1 + ' and ' + lat2 + '/' + lon2 );
+  //console.log('searching for routes between: ' + lat1 + '/' + lon1 + ' and ' + lat2 + '/' + lon2 );
 
   var newPath = path.join( __dirname + '/uploads/' + req.query.fileName );
 
   // find the routes 
   var routesJSON = JSON.parse( gpx.routesBetweenToJSON( newPath, lat1, lon1, lat2, lon2, tol ) );
 
-  console.log( routesJSON );
+  //console.log( routesJSON );
 
+  if( routesJSON.length == 0 ){
+    res.send({
+      success: true,
+      empty: true,
+      routeData: routesJSON
+    })
+  
+  } else {
+    res.send({
+      success: true,
+      empty: false,
+      routeData: routesJSON
+    })
+  }
+});
+
+app.get('/pathsBetweenTracks', function(req, res){
+  // get the info
+  // need wpts and tolerance
+  var lon1 = req.query.lon1;
+  var lat1 = req.query.lat1;
+  var lon2 = req.query.lon2;
+  var lat2 = req.query.lat2;
+  var tol  = req.query.tol;
+
+  console.log( req.query );
+
+  console.log('searching for tracks between: ' + lat1 + '/' + lon1 + ' and ' + lat2 + '/' + lon2 );
+  
+  // get the path 
+  var newPath = path.join( __dirname + '/uploads/' + req.query.fileName );
+
+  // find the tracks 
+  var tracksJSON = JSON.parse( gpx.tracksBetweenToJSON( newPath, lat1, lon1, lat2, lon2, tol ) );
+  
+  if( tracksJSON.length == 0 ){
+    res.send({
+      success: true,
+      empty: true,
+      trackData: tracksJSON
+    })
+  
+  } else {
+    res.send({
+      success: true,
+      empty: false,
+      trackData: tracksJSON
+    })
+  }
+});
+
+
+
+app.get('/validateFiles', function(req, res){
+
+  // need file name,
+  var fileName = req.query.fileName;
+
+  // make the path
+  var newPath = path.join( __dirname + '/uploads/' + fileName );
+
+  // validate by passing to c function
+  var valid = gpx.validateGPXFile( newPath );
+
+  console.log(fileName + ' was valid: ' + valid );
+
+  // return whether file is valid gpx or not
   res.send({
     success: true,
-    routeData: routesJSON
-  })
+    valid: valid
+  });
+
 });

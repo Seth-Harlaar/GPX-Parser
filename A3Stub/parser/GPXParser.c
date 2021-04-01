@@ -1139,25 +1139,32 @@ List * getTracksBetween( const GPXdoc * doc, float sourceLat, float sourceLong, 
 
     // get first wpt from first track seg
     trackSeg = getFromFront( track->segments );
-    wpt = getFromFront( trackSeg->waypoints );
-  
-    // check if start matches start point provided
-    startDif = haversine( wpt->latitude, wpt->longitude, sourceLat, sourceLong );
 
+    // if the track segment has waypoints
+    if( getLength( trackSeg->waypoints) != 0 ){
+      wpt = getFromFront( trackSeg->waypoints );
+    
+      // check if start matches start point provided
+      startDif = haversine( wpt->latitude, wpt->longitude, sourceLat, sourceLong );
 
-    // get last wpt from last track seg
-    trackSeg = getFromBack( track->segments );
-    wpt = getFromBack( trackSeg->waypoints );
+      // get last wpt from last track seg
+      trackSeg = getFromBack( track->segments );
+      
+      // if the track segment has waypoints
+      if( getLength( trackSeg->waypoints ) != 0 ){
+        wpt = getFromBack( trackSeg->waypoints );
 
-    // check if start matches start point provided
-    endDif = haversine( wpt->latitude, wpt->longitude, destLat, destLong );
+        // check if start matches start point provided
+        endDif = haversine( wpt->latitude, wpt->longitude, destLat, destLong );
 
-    start = compareLength( startDif, 0, delta );
-    end = compareLength( endDif, 0, delta );
+        start = compareLength( startDif, 0, delta );
+        end = compareLength( endDif, 0, delta );
 
-    if( start && end ){
-      // if true add the route to return list
-      insertBack( returnList, track );
+        if( start && end ){
+          // if true add the route to return list
+          insertBack( returnList, track );
+        }
+      }
     }
   }
 
@@ -1169,6 +1176,8 @@ List * getTracksBetween( const GPXdoc * doc, float sourceLat, float sourceLong, 
 
   return returnList;
 }
+
+
 
 
 
