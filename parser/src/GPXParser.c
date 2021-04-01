@@ -1258,6 +1258,7 @@ char * trackToJSON( const Track * tr ){
   char * name;
   float trackLen;
   bool loopStat;
+  int numWpts = 0;
 
   // set base size for required spaces, brackets etc
   // "name":"","numPoints":,"len":,"loop":false}
@@ -1290,13 +1291,25 @@ char * trackToJSON( const Track * tr ){
 
   returnString = realloc( returnString, strSize );
 
+  // get numWpts
+  ListIterator segIter;
+  TrackSegment * seg;
+
+  if( getLength( tr->segments ) != 0 ){
+    segIter = createIterator( tr->segments );
+
+    for( seg = nextElement( &segIter ); seg != NULL; seg = nextElement( &segIter) ){
+      numWpts += getLength( seg->waypoints );
+    }
+  }
+
   // if its a loop
   if( loopStat ){
-    sprintf(returnString, "{\"name\":\"%s\",\"len\":%0.1f,\"loop\":true}", name, trackLen );
+    sprintf(returnString, "{\"name\":\"%s\",\"numPoints\":%d,\"len\":%0.1f,\"loop\":true}", name, numWpts, trackLen );
 
   // if its not
   } else {
-    sprintf(returnString, "{\"name\":\"%s\",\"len\":%0.1f,\"loop\":false}", name, trackLen );
+    sprintf(returnString, "{\"name\":\"%s\",\"numPoints\":%d,\"len\":%0.1f,\"loop\":false}", name, numWpts, trackLen );
   }
 
   // cleanup
