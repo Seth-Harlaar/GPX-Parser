@@ -115,11 +115,13 @@ app.get('/retrieveFiles', function(req, res){
 
       // for each file, parse it and add it to the JSON obj
       files.forEach(file => {
+
         // check first that file's extension is gpx
         // solution to get extension found here: https://stackoverflow.com/questions/190852/how-can-i-get-file-extensions-with-javascript/1203361#1203361
         var fileExtension = file.substring(file.lastIndexOf('.') + 1, file.length) || file;
 
         if( fileExtension == 'gpx' ){
+
           // check if its valid first
           // make the path
           var newPath = path.join( __dirname + '/uploads/' + file );
@@ -342,7 +344,7 @@ app.get('/renameTrack', function(req, res){
 
   // send to c function
   var success = gpx.renameTrack( oldName, path.join( __dirname + '/uploads/' + fileName ), newName );
-
+  console.log( success );
   res.send({
     success: success
   })

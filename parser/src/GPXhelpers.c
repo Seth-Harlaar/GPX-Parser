@@ -1459,12 +1459,16 @@ char * tracksBetweenToJSON( char * fileName, float lat1, float lon1, float lat2,
 
 
 char * validateGPXFile( char * fileName ){
-  GPXdoc * doc = createValidGPXdoc( fileName, "gpx.xsd" );
+  GPXdoc * doc = createGPXdoc( fileName );
+  
+  if( doc != NULL ){
+    bool valid = validateGPXDoc( doc, "gpx.xsd" );
 
-  bool valid = validateGPXDoc( doc, "gpx.xsd" );
-
-  if( valid ){
-    return "true";
+    if( valid ){
+      return "true";
+    } else {
+      return "false";
+    }
   } else {
     return "false";
   }

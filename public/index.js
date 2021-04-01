@@ -85,19 +85,20 @@ function reloadViewPanel(){
         
       $('#gpxViewBody').empty();
 
-
-      for( let route in data.gpxRoutesObject ){
-        console.log( route );
-        $('#gpxViewBody').append(
-          "<tr id='true' value='" + data.gpxRoutesObject[route].name + "'>" +
-            "<th scope='row'>" + 'Route ' + i + "</th>" +
-            "<td>" + data.gpxRoutesObject[route].name + "</td>" +
-            "<td>" + data.gpxRoutesObject[route].numPoints + "</td>" +
-            "<td>" + data.gpxRoutesObject[route].len + "</td>" +
-            "<td>" + data.gpxRoutesObject[route].loop + "</td>" +
-          "</tr>"
-        );
-        i++;
+      if( data.gpxRoutesObject.length != 0 ){
+        for( let route in data.gpxRoutesObject ){
+          console.log( route );
+          $('#gpxViewBody').append(
+            "<tr id='true' value='" + data.gpxRoutesObject[route].name + "'>" +
+              "<th scope='row'>" + 'Route ' + i + "</th>" +
+              "<td>" + data.gpxRoutesObject[route].name + "</td>" +
+              "<td>" + data.gpxRoutesObject[route].numPoints + "</td>" +
+              "<td>" + data.gpxRoutesObject[route].len + "</td>" +
+              "<td>" + data.gpxRoutesObject[route].loop + "</td>" +
+            "</tr>"
+          );
+          i++;
+        }
       }
     },
 
@@ -120,18 +121,21 @@ function reloadViewPanel(){
       // for each route found add the components
       var i = 1;
 
-      for( let track in data.gpxTracksObject ){
-        console.log( track );
-        $('#gpxViewBody').append(
-          "<tr id='false' value='" + data.gpxTracksObject[track].name + "'>" +
-            "<th scope='row'>" + 'Track ' + i + "</th>" +
-            "<td>" + data.gpxTracksObject[track].name + "</td>" +
-            "<td>" + data.gpxTracksObject[track].numPoints + "</td>" +
-            "<td>" + data.gpxTracksObject[track].len + "</td>" +
-            "<td>" + data.gpxTracksObject[track].loop + "</td>" +
-          "</tr>"
-        );
-        i++;
+      if( data.gpxTracksObject.length != 0 ){
+        for( let track in data.gpxTracksObject ){
+          console.log( track );
+          $('#gpxViewBody').append(
+            "<tr id='false' value='" + data.gpxTracksObject[track].name + "'>" +
+              "<th scope='row'>" + 'Track ' + i + "</th>" +
+              "<td>" + data.gpxTracksObject[track].name + "</td>" +
+              "<td>" + data.gpxTracksObject[track].numPoints + "</td>" +
+              "<td>" + data.gpxTracksObject[track].len + "</td>" +
+              "<td>" + data.gpxTracksObject[track].loop + "</td>" +
+            "</tr>"
+          );
+          i++;
+        }
+
       }
     },
 
@@ -497,7 +501,7 @@ jQuery(document).ready(function() {
             reloadFiles();
             console.log( 'successfully added new route to file');
           } else {
-            alert('failed to add new route to file');
+            alert('please select a file to add route to ');
           }
         }
       });
@@ -557,7 +561,7 @@ jQuery(document).ready(function() {
             oldName: oldName,
             newName: newName,
             fileName: fileName
-          }, 
+          },
 
           success: function( data ){
             if( data.success == 'true' ){
