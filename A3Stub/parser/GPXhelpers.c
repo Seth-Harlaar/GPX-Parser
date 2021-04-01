@@ -1406,21 +1406,21 @@ char * routesBetweenToJSON( char * fileName, float lat1, float lon1, float lat2,
   bool valid = validateGPXDoc( doc, "gpx.xsd" );
 
   if( !valid ){
-    return "false";
+    return "{\"invalid\":\"true\"}";
   }
 
   // find routes between two points
   List * routes = getRoutesBetween( doc, lat1, lon2, lat2, lon2, tol );
 
   if( routes == NULL ){
-    return "none";
+    return "{\"invalid\":\"false\"}";
   }
 
   // convert list to JSON
   char * JSON = routeListToJSON( routes );
 
   if( JSON == NULL ){
-    return "false";
+    return "{\"invalid\":\"true\"}";
   }
 
   deleteGPXdoc( doc );
@@ -1438,21 +1438,21 @@ char * tracksBetweenToJSON( char * fileName, float lat1, float lon1, float lat2,
   bool valid = validateGPXDoc( doc, "gpx.xsd" );
 
   if( !valid ){
-    return "false";
+    return "{\"invalid\":\"true\"}";
   }
 
   // find routes between two points
   List * tracks = getTracksBetween( doc, lat1, lon2, lat2, lon2, tol );
 
   if( tracks == NULL ){
-    return "none";
+    return "{\"invalid\":\"false\"}";
   }
 
   // convert list to JSON
   char * JSON = routeListToJSON( tracks );
 
   if( JSON == NULL ){
-    return "false";
+    return "{\"invalid\":\"true\"}";
   }
 
   deleteGPXdoc( doc );

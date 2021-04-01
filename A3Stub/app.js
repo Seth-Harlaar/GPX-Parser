@@ -348,6 +348,7 @@ app.get('/pathsBetween', function(req, res){
 
   var routesJSON;
   var tracksJSON;
+  var fileExtension;
 
   var compData = {};
 
@@ -360,28 +361,38 @@ app.get('/pathsBetween', function(req, res){
   fs.readdir(path.join(__dirname+'/uploads/'), function( err, files) {
     // for each file, get the tracks and routes that are between to JSON
     files.forEach(file => {
+      // make sure only checking gpx files
+      fileExtension = file.substring(file.lastIndexOf('.') + 1, file.length) || file;
 
-      routesJSON = JSON.parse( gpx.routesBetweenToJSON( file, lat1, lon1, lat2, lon2, tol ) );
-      tracksJSON = JSON.parse( gpx.routesBetweenToJSON( file, lat1, lon1, lat2, lon2, tol ) );
+      if( fileExtension == 'gpx' ){
+        console.log(file);
+  
+        routesJSON = gpx.routesBetweenToJSON( path.join( __dirname + '/uploads/' + file ), lat1, lon1, lat2, lon2, tol );
+        console.log(routesJSON);
+      
+        // add all the info to one big JSON
+        for( let route in routesJSON ){
+          compData['route' + i] = routesJSON[route];
+          i++;
+        }
 
-      // add all the info to one big JSON
-      for( let route in routesJSON ){
-        compData['route' + i] = routesJSON[route];
-        i++;
-      }
-
-      for( let track in tracksJSON ){
-        compData['track' + j] = tracksJSON[track];
-        j++;
+        tracksJSON = gpx.routesBetweenToJSON( path.join( __dirname + '/uploads/' + file ), lat1, lon1, lat2, lon2, tol );
+        console.log(routesJSON);
+  
+        for( let track in tracksJSON ){
+          compData['track' + j] = tracksJSON[track];
+          j++;
+        }
+      
       }
     });
   
+    res.send({
+      success: true
+    })
   });
 
 
 
-  res.send({
-    success: true
-  })
 
 });

@@ -9,6 +9,12 @@
   <rte>
     <name>another one</name>
   </rte>
+  <rte>
+    <name>asdf</name>
+  </rte>
+  <rte>
+    <name>asdf</name>
+  </rte>
   <trk>
     <name>rename again</name>
     <desc> Tis is my descriopt</desc>
