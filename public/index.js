@@ -135,7 +135,6 @@ function reloadViewPanel(){
           );
           i++;
         }
-
       }
     },
 

@@ -281,6 +281,12 @@ app.get('/newRoute', function(req, res){
 
   console.log('making new route with name: ' + newRouteName + ' in file: ' + fileName );
 
+  if( newRouteName == 'Select a File' ){
+    res.send({
+      select: false
+    })
+  }
+
   // make the c function call to add a new route
   var routeData = {
     "name":newRouteName
@@ -309,6 +315,7 @@ app.get('/newRoute', function(req, res){
   console.log( success );
 
   res.send({
+    select: true,
     success: success
   })
 });
@@ -325,6 +332,7 @@ app.get('/renameRoute', function(req, res){
 
   // send to c function
   var success = gpx.renameRoute( oldName, path.join( __dirname + '/uploads/' + fileName ), newName );
+  console.log( success );
 
 
   res.send({
