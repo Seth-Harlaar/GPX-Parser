@@ -1080,21 +1080,25 @@ List * getRoutesBetween( const GPXdoc * doc, float sourceLat, float sourceLong, 
 
   // loop through each route
   for( route = nextElement( &routeIter ); route != NULL; route = nextElement( &routeIter ) ){
-    wpt = getFromFront( route->waypoints );
-    
-    // check if start matches start point provided
-    startDif = haversine( wpt->latitude, wpt->longitude, sourceLat, sourceLong );
+    if( getLength( route->waypoints) != 0 ){
+      wpt = getFromFront( route->waypoints );
+      
+      // check if start matches start point provided
+      if( wpt == NULL ){
+      }
+      startDif = haversine( wpt->latitude, wpt->longitude, sourceLat, sourceLong );
 
-    wpt = getFromBack( route->waypoints );
-    // check if end matches end point provided
-    endDif = haversine( wpt->latitude, wpt->longitude, destLat, destLong );
+      wpt = getFromBack( route->waypoints );
+      // check if end matches end point provided
+      endDif = haversine( wpt->latitude, wpt->longitude, destLat, destLong );
 
-    start = compareLength( startDif, 0, delta );
-    end = compareLength( endDif, 0, delta );
+      start = compareLength( startDif, 0, delta );
+      end = compareLength( endDif, 0, delta );
 
-    if( start && end ){
-      // if true add the route to return list
-      insertBack( returnList, route );
+      if( start && end ){
+        // if true add the route to return list
+        insertBack( returnList, route );
+      }
     }
   }
 
@@ -1106,7 +1110,6 @@ List * getRoutesBetween( const GPXdoc * doc, float sourceLat, float sourceLong, 
 
   return returnList;
 }
-
 
 List * getTracksBetween( const GPXdoc * doc, float sourceLat, float sourceLong, float destLat, float destLong, float delta ){
 

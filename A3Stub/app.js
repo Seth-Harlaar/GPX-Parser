@@ -337,62 +337,28 @@ app.get('/renameTrack', function(req, res){
 });
 
 
-app.get('/pathsBetween', function(req, res){
+app.get('/pathsBetweenRoutes', function(req, res){
 
   // need wpts and tolerance
   var lon1 = req.query.lon1;
   var lat1 = req.query.lat1;
   var lon2 = req.query.lon2;
   var lat2 = req.query.lat2;
-  var tol = req.query.tol;
+  var tol  = req.query.tol;
 
-  var routesJSON;
-  var tracksJSON;
-  var fileExtension;
-
-  var compData = {};
-
-  var i = 1;
-  var j = 1;
+  console.log(req.query);
 
   console.log('searching for routes/tracks between: ' + lat1 + '/' + lon1 + ' and ' + lat2 + '/' + lon2 );
 
-  // get all the file names
-  fs.readdir(path.join(__dirname+'/uploads/'), function( err, files) {
-    // for each file, get the tracks and routes that are between to JSON
-    files.forEach(file => {
-      // make sure only checking gpx files
-      fileExtension = file.substring(file.lastIndexOf('.') + 1, file.length) || file;
+  var newPath = path.join( __dirname + '/uploads/' + req.query.fileName );
 
-      if( fileExtension == 'gpx' ){
-        console.log(file);
-  
-        routesJSON = gpx.routesBetweenToJSON( path.join( __dirname + '/uploads/' + file ), lat1, lon1, lat2, lon2, tol );
-        console.log(routesJSON);
-      
-        // add all the info to one big JSON
-        for( let route in routesJSON ){
-          compData['route' + i] = routesJSON[route];
-          i++;
-        }
+  // find the routes 
+  var routesJSON = JSON.parse( gpx.routesBetweenToJSON( newPath, lat1, lon1, lat2, lon2, tol ) );
 
-        tracksJSON = gpx.routesBetweenToJSON( path.join( __dirname + '/uploads/' + file ), lat1, lon1, lat2, lon2, tol );
-        console.log(routesJSON);
-  
-        for( let track in tracksJSON ){
-          compData['track' + j] = tracksJSON[track];
-          j++;
-        }
-      
-      }
-    });
-  
-    res.send({
-      success: true
-    })
-  });
+  console.log( routesJSON );
 
-
-
-
+  res.send({
+    success: true,
+    routeData: routesJSON
+  })
 });

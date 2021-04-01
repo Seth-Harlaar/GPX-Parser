@@ -601,27 +601,46 @@ jQuery(document).ready(function() {
 
     if( submit ){
       console.log('Making reqest to find routes/tracks between points ');
-      // send the data
+
+      // get all the file names
       $.ajax({
         type: 'get',
-          dataType: 'json',
-          url: '/pathsBetween',
-          data :{
-            lat1: lat1,
-            lat2: lat2,
-            lon1: lon1,
-            lon2: lon2,
-            tol: tol
-          }, 
+        dataType: 'json',
+        url: '/retrieveFiles',
 
-          success: function( data ){
-            if( data.success == true){
-              console.log('successfully retrieved all routes/tracks between point');
-            } else {
-              alert('failed to find routes/tracks between point');
-            }
-          } 
-      });
+        success: function( data ){
+          // make a request for each
+          for( let gpxFile in data.gpxFilesObject ){
+
+            // send the data
+            $.ajax({
+              type: 'get',
+                dataType: 'json',
+                url: '/pathsBetweenRoutes',
+                data :{
+                  fileName: gpxFile,
+                  lat1: lat1,
+                  lat2: lat2,
+                  lon1: lon1,
+                  lon2: lon2,
+                  tol: tol
+                }, 
+      
+                success: function( data ){
+                  if( data.success == true){
+                    console.log('successfully retrieved all routes/tracks between point');
+                    console.log( data );
+                  } else {
+                    alert('failed to find routes/tracks between point');
+                  }
+                } 
+            });
+          }
+        }
+      })
+
+
+
     }
   });
 });

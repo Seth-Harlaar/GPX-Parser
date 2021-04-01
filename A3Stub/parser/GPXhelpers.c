@@ -1410,7 +1410,7 @@ char * routesBetweenToJSON( char * fileName, float lat1, float lon1, float lat2,
   }
 
   // find routes between two points
-  List * routes = getRoutesBetween( doc, lat1, lon2, lat2, lon2, tol );
+  List * routes = getRoutesBetween( doc, lat1, lon1, lat2, lon2, tol );
 
   if( routes == NULL ){
     return "{\"invalid\":\"false\"}";
@@ -1422,8 +1422,6 @@ char * routesBetweenToJSON( char * fileName, float lat1, float lon1, float lat2,
   if( JSON == NULL ){
     return "{\"invalid\":\"true\"}";
   }
-
-  deleteGPXdoc( doc );
 
   // return list
   return JSON;
@@ -1442,7 +1440,7 @@ char * tracksBetweenToJSON( char * fileName, float lat1, float lon1, float lat2,
   }
 
   // find routes between two points
-  List * tracks = getTracksBetween( doc, lat1, lon2, lat2, lon2, tol );
+  List * tracks = getTracksBetween( doc, lat1, lon1, lat2, lon2, tol );
 
   if( tracks == NULL ){
     return "{\"invalid\":\"false\"}";
@@ -1454,8 +1452,6 @@ char * tracksBetweenToJSON( char * fileName, float lat1, float lon1, float lat2,
   if( JSON == NULL ){
     return "{\"invalid\":\"true\"}";
   }
-
-  deleteGPXdoc( doc );
 
   // return list
   return JSON;
