@@ -31,7 +31,9 @@ var gpx = ffi.Library( './libgpxparser', {
   'addNewRoute': ['string', ['string', 'string']],
   'addWptToRoute' : ['string', ['string', 'string', 'string']],
   'renameRoute' : ['string', ['string', 'string', 'string']],
-  'renameTrack' : ['string', ['string', 'string', 'string']]
+  'renameTrack' : ['string', ['string', 'string', 'string']],
+  'routesBetweenToJSON': ['string', ['string', 'float', 'float', 'float', 'float', 'float']],
+  'tracksBetweenToJSON': ['string', ['string', 'float', 'float', 'float', 'float', 'float']]
 });
 
 
@@ -332,4 +334,54 @@ app.get('/renameTrack', function(req, res){
   res.send({
     success: success
   })
+});
+
+
+app.get('/pathsBetween', function(req, res){
+
+  // need wpts and tolerance
+  var lon1 = req.query.lon1;
+  var lat1 = req.query.lat1;
+  var lon2 = req.query.lon2;
+  var lat2 = req.query.lat2;
+  var tol = req.query.tol;
+
+  var routesJSON;
+  var tracksJSON;
+
+  var compData = {};
+
+  var i = 1;
+  var j = 1;
+
+  console.log('searching for routes/tracks between: ' + lat1 + '/' + lon1 + ' and ' + lat2 + '/' + lon2 );
+
+  // get all the file names
+  fs.readdir(path.join(__dirname+'/uploads/'), function( err, files) {
+    // for each file, get the tracks and routes that are between to JSON
+    files.forEach(file => {
+
+      routesJSON = JSON.parse( gpx.routesBetweenToJSON( file, lat1, lon1, lat2, lon2, tol ) );
+      tracksJSON = JSON.parse( gpx.routesBetweenToJSON( file, lat1, lon1, lat2, lon2, tol ) );
+
+      // add all the info to one big JSON
+      for( let route in routesJSON ){
+        compData['route' + i] = routesJSON[route];
+        i++;
+      }
+
+      for( let track in tracksJSON ){
+        compData['track' + j] = tracksJSON[track];
+        j++;
+      }
+    });
+  
+  });
+
+
+
+  res.send({
+    success: true
+  })
+
 });

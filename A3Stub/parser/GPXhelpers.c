@@ -1398,15 +1398,65 @@ char * renameTrack( char * oldName, char * fileName, char * newName){
 }
 
 
-char * getRoutesBetween( char * fileName, float lat1, float lon1, float lat2, float lon2,  float tol ){
+char * routesBetweenToJSON( char * fileName, float lat1, float lon1, float lat2, float lon2,  float tol ){
   // make a doc out of the file
-  
+  GPXdoc * doc = createValidGPXdoc( fileName, "gpx.xsd" );
+
   // check valid
+  bool valid = validateGPXDoc( doc, "gpx.xsd" );
+
+  if( !valid ){
+    return "false";
+  }
 
   // find routes between two points
+  List * routes = getRoutesBetween( doc, lat1, lon2, lat2, lon2, tol );
+
+  if( routes == NULL ){
+    return "none";
+  }
 
   // convert list to JSON
+  char * JSON = routeListToJSON( routes );
+
+  if( JSON == NULL ){
+    return "false";
+  }
+
+  deleteGPXdoc( doc );
 
   // return list
+  return JSON;
+}
 
+
+char * tracksBetweenToJSON( char * fileName, float lat1, float lon1, float lat2, float lon2,  float tol ){
+  // make a doc out of the file
+  GPXdoc * doc = createValidGPXdoc( fileName, "gpx.xsd" );
+
+  // check valid
+  bool valid = validateGPXDoc( doc, "gpx.xsd" );
+
+  if( !valid ){
+    return "false";
+  }
+
+  // find routes between two points
+  List * tracks = getTracksBetween( doc, lat1, lon2, lat2, lon2, tol );
+
+  if( tracks == NULL ){
+    return "none";
+  }
+
+  // convert list to JSON
+  char * JSON = routeListToJSON( tracks );
+
+  if( JSON == NULL ){
+    return "false";
+  }
+
+  deleteGPXdoc( doc );
+
+  // return list
+  return JSON;
 }

@@ -430,22 +430,34 @@ jQuery(document).ready(function() {
 
     // for every div with id tag newWpt, get the info out and add it to wptData
     var newRouteData = $('#newRouteForm').serializeArray();
+    var num;
 
     newRouteData.forEach( item =>{
+      // handle new route name input
       if( item.name == 'newRouteName' ){
         wptData['newRouteName'] = item.value;
       } else {
 
-        var num = parseFloat( item.value );
-
-        if( isNaN(num) || num > 90.0 || num < -90.0 ){
-          submit = false;
-          alert('Input latitude/longitude must be a float between (and including) 90.0 and -90.0');
-        }
-
+        // handle lat input
         if( item.name == 'lat' ){
+          num = parseFloat( item.value );
+
+          if( isNaN(num) || num > 90.0 || num < -90.0 ){
+            submit = false;
+            alert('Input latitude must be a float between (and including) 90.0 and -90.0');
+          }
+
           wptLat[i] = item.value;
+
+        // handle lon input
         } else if( item.name == 'lon' ){
+          num = parseFloat( item.value );
+
+          if( isNaN(num) || num > 180.0 || num < -180.0 ){
+            submit = false;
+            alert('Input longitude must be a float between (and including) 180.0 and -180.0');
+          }
+
           wptLon[i] = item.value;
           i++;
         }
@@ -562,6 +574,8 @@ jQuery(document).ready(function() {
   $('#pathBetweenForm').submit(function(e){
     e.preventDefault();
 
+    var submit = true;
+
     // need lat long and tolerance
     var lat1 = parseFloat( $('#inputLat1').val() );
     var lon1 = parseFloat( $('#inputLon1').val() );
@@ -570,34 +584,46 @@ jQuery(document).ready(function() {
     var tol = parseFloat( $('#inputTol').val() );
 
     // check input
-    if( isNaN(lat1) || lat1 > 90.0 || lat1 < -90.0 || isNaN(lon1) || lon1 > 90.0 || lon1 < -90.0 || isNaN(tol) || isNaN(lat2) || lat2 > 90.0 || lat2 < -90.0 || isNaN(lon2) || lon2 > 90.0 || lon2 < -90.0 ){
-      alert('Input latitude/longitude must be a float between (and including) 90.0 and -90.0.\nTolerance must be a number');
+    if( lat1 > 90.0 || lat1 < -90.0 || lat2 > 90.0 || lat2 < -90.0 ){
+      alert('Input latitude must be a float between (and including) 90.0 and -90.0.');
+      submit = false;
+    }
 
-    } else {
+    if( lon1 > 180.0 || lon1 < -180.0 || lon2 > 180.0 || lon2 < -180.0 ){
+      alert('Input Longitude must be a float between (and including) 180.0 and -180.0');
+      submit = false;
+    }
+
+    if( isNaN(lat1) || isNaN(lon1) || isNaN(tol) || isNaN(lat2) || isNaN(lon2) ){
+      alert('Inputs must be all be numbers');
+      submit = false;
+    }
+
+    if( submit ){
+      console.log('Making reqest to find routes/tracks between points ');
       // send the data
       $.ajax({
         type: 'get',
           dataType: 'json',
           url: '/pathsBetween',
           data :{
-            lat: lat,
-            lon: lon,
+            lat1: lat1,
+            lat2: lat2,
+            lon1: lon1,
+            lon2: lon2,
             tol: tol
           }, 
 
           success: function( data ){
-            if( data.success == 'true'){
+            if( data.success == true){
               console.log('successfully retrieved all routes/tracks between point');
             } else {
               alert('failed to find routes/tracks between point');
             }
           } 
-      })
+      });
     }
   });
-
-
-
 });
 
 

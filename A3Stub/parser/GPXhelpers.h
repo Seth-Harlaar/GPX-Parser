@@ -74,6 +74,9 @@ char * addNewRoute( char * fileName, char * JSON );
 char * addWptToRoute( char * fileName, char * JSON, char * routeName );
 char * renameRoute( char * oldName, char * fileName, char * newName);
 char * renameTrack( char * oldName, char * fileName, char * newName);
+char * routesBetweenToJSON( char * fileName, float lat1, float lon1, float lat2, float lon2,  float tol );
+char * tracksBetweenToJSON( char * fileName, float lat1, float lon1, float lat2, float lon2,  float tol );
+
 
 
 
