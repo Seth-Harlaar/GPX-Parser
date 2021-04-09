@@ -9,6 +9,7 @@ const express = require("express");
 const app     = express();
 const path    = require("path");
 const fileUpload = require('express-fileupload');
+const mysql = require('mysql2/promise');
 
 app.use(fileUpload());
 app.use(express.static(path.join(__dirname+'/uploads')));
@@ -18,6 +19,7 @@ const fs = require('fs');
 const JavaScriptObfuscator = require('javascript-obfuscator');
 const { NONAME } = require('dns');
 const { stringify } = require('querystring');
+const { connect } = require('http2');
 
 // Important, pass in port as in `npm run dev 1234`, do not change
 const portNum = process.argv[2];
@@ -38,11 +40,14 @@ var gpx = ffi.Library( './libgpxparser', {
   'validateGPXFile' : ['string', ['string']]
 });
 
+let connection;
 
 // Send HTML at root, do not change
-app.get('/',function(req,res){
+app.get('/', function(req,res){
   res.sendFile(path.join(__dirname+'/public/index.html'));
 });
+
+
 
 // Send Style, do not change
 app.get('/style.css',function(req,res){
@@ -127,6 +132,8 @@ app.get('/retrieveFiles', function(req, res){
   fs.readdir(path.join(__dirname+'/uploads/'), function( err, files) {
 
     if(err == null) {
+      var count = 0;
+
       // start with empty JSON
       var gpxFilesObject = {
       }
@@ -155,12 +162,15 @@ app.get('/retrieveFiles', function(req, res){
             
             // add it to the object
             gpxFilesObject[file] = gpxObject;
+            // increment the length
+            count++;
           }
         }
       });
 
       // send it back
       res.send(  {
+          count: count,
           gpxFilesObject: gpxFilesObject
         }
       );
@@ -470,5 +480,178 @@ app.get('/validateFiles', function(req, res){
     success: true,
     valid: valid
   });
+
+});
+
+
+
+// **************** A4 funcitonality **********************
+
+// create connection
+app.get('/login', async function( req, res){
+  var connected = true;
+
+  // get info
+  var userName = req.query.userName;
+  var password = req.query.password;
+  var dbName = req.query.dbName;
+
+  // try connecting
+  try{
+    connection = await mysql.createConnection({
+      host: 'dursley.socs.uoguelph.ca',
+      user: userName,
+      password: password,
+      database: dbName
+    })
+
+    connection.connect();
+  } catch(e) {
+    console.log( 'connection error' + e );
+    connected = false;
+  } finally {
+    // send response
+    res.send({
+      success: connected
+    });
+  }
+});
+
+
+
+// setup tables 
+app.get('/createTables', async function(req, res){
+  let connection;
+  try{
+    connection = await mysql.createConnection({
+      host: 'dursley.socs.uoguelph.ca',
+      user: 'sharlaar',
+      password: '1109524',
+      database: 'sharlaar'
+    })
+  } catch(e) {
+    console.log( 'connection error' + e );
+  }
+    
+  let fileTable = "CREATE TABLE IF NOT EXISTS FILE(   " +
+  "gpx_id      INT           NOT NULL AUTO_INCREMENT, " + 
+  "file_name   VARCHAR(60)   NOT NULL,                " + 
+  "ver         DECIMAL(2,1)  NOT NULL,                " + 
+  "creator     VARCHAR(60)   NOT NULL,                " + 
+  "PRIMARY KEY (gpx_id)                               " + 
+  ")";
+
+  let routeTable = "CREATE TABLE IF NOT EXISTS ROUTE(    " +
+  "route_id     INT           NOT NULL AUTO_INCREMENT,   " +
+  "route_name   VARCHAR(256),                            " +
+  "route_len    FLOAT(15,7)   NOT NULL,                  " +
+  "gpx_id       INT           NOT NULL,                  " +
+  "PRIMARY KEY  (route_id),                              " +
+  "FOREIGN KEY  (gpx_id)      REFERENCES FILE(gpx_id) ON DELETE CASCADE   " +
+  ")";
+
+  let pointTable = "CREATE TABLE IF NOT EXISTS POINT(     " +
+  "point_id     INT             NOT NULL AUTO_INCREMENT,  " +
+  "point_index  INT             NOT NULL,                 " +
+  "latitude     DECIMAL(11,7)   NOT NULL,                 " +
+  "longitude    DECIMAL(11,7)   NOT NULL,                 " +
+  "point_name   VARCHAR(256),                             " +
+  "route_id     INT             NOT NULL,                 " +
+  "PRIMARY KEY  (point_id),                               " +
+  "FOREIGN KEY  (route_id)      REFERENCES ROUTE(route_id) ON DELETE CASCADE   " +
+  ")";
+
+  let [rows, fields] = await connection.execute( fileTable );
+  [rows, fields] = await connection.execute( routeTable );
+  [rows, fields] = await connection.execute( pointTable );
+  
+  console.log( rows + fields );
+
+  connection.end();
+  res.redirect('/');
+});
+
+
+// save a file
+app.get('/saveFile', async function(req, res){
+  var success = false;
+  var unique = true;
+  let rows;
+  let fields;
+  
+  // file data 
+  var fileName = req.query.fileName;
+  var version = req.query.version;
+  var creator = req.query.creator;
+
+  // open a connection
+  let connection;
+  try{
+    connection = await mysql.createConnection({
+      host: 'dursley.socs.uoguelph.ca',
+      user: 'sharlaar',
+      password: '1109524',
+      database: 'sharlaar'
+    })
+    
+    // if successfully connected, get the query
+    // save the file info to FILE table
+    var fileInsert = 'INSERT INTO FILE' +
+    '(file_name, ver, creator)' +
+    'values ( "' + fileName + '",' + version + ', "' + creator +  '")';
+
+    // check first that the filename is not already present in the db
+    // get list of all file names
+    try{
+      [rows, fields] = await connection.execute('select file_name from FILE');
+      
+      // compare against each file name
+      for( let row in rows ){
+        if( fileName == rows[row].file_name ){
+          console.log('File: ' + fileName + ' has already been saved to db')
+          unique = false;
+        }
+      }
+    } catch(e){
+      console.log('Error retrieving all file names: ' + e);
+      unique = false;
+    }
+
+    // if it is a unique file name and passes try/catch block, send it to the conection
+    if( unique ){
+      // try insert the file
+      try{
+        let [rows, fields] = await connection.execute( fileInsert );
+        var success = true;
+        console.log('successfully saved file: ' + fileName);
+        console.log(rows);
+      
+      // if sending the file fails
+      } catch(e){
+        console.log('Eror trying to insert file ' + e);
+        var success = false;    
+      }
+    }
+  
+  // if connecting fails
+  } catch(e) {
+    console.log( 'connection error ' + e );    
+
+  // at the end of everything
+  } finally {
+    if( !success ){
+      console.log('Could not save files')
+    }
+
+    connection.end();
+
+    res.send({
+      success: success
+    })
+  }
+
+
+
+  // close the connection
 
 });

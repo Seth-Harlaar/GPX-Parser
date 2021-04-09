@@ -24,8 +24,20 @@ function reloadFiles(){
         '<option selected>Select a File</option>'
       );
 
+      console.log(data)
+
+      if( data.count != 0 ){
+        console.log('length');
+        $('#saveFilesButtonSpot').append(
+          '<button type="submit" id="saveFilesButton" class="btn btn-info">Save Files</button>'
+          );
+        } else {
+        console.log('no length');
+      }
+
       // for each gpxFile data returned
       for( let gpxFile in data.gpxFilesObject ){
+
 
         // add all the files to the file log panel
         $('#filePanelBody').append(
@@ -172,18 +184,18 @@ jQuery(document).ready(function() {
       e.preventDefault();
       alert('No input files');
       console.log('no input files');
+    } else {
+      // check if the name has a gpx extension
+      // how to get file extension from here: https://stackoverflow.com/questions/190852/how-can-i-get-file-extensions-with-javascript/1203361#1203361
+      var fileName = $('#fileInput')[0].files[0].name;
+      var fileExtension = fileName.substring(fileName.lastIndexOf('.') + 1, fileName.length) || fileName;
+  
+      if( fileExtension != 'gpx' ){
+        alert('Not a GPX file. ');
+        e.preventDefault();
+      }
+      console.log( 'file extension: ' + fileExtension );
     }
-
-    // check if the name has a gpx extension
-    // how to get file extension from here: https://stackoverflow.com/questions/190852/how-can-i-get-file-extensions-with-javascript/1203361#1203361
-    var fileName = $('#fileInput')[0].files[0].name;
-    var fileExtension = fileName.substring(fileName.lastIndexOf('.') + 1, fileName.length) || fileName;
-
-    if( fileExtension != 'gpx' ){
-      alert('Not a GPX file. ');
-      e.preventDefault();
-    }
-    console.log( 'file extension: ' + fileExtension );
   });
 
 
@@ -584,6 +596,8 @@ jQuery(document).ready(function() {
   });
 
 
+
+// get routes between two points
   $('#pathBetweenForm').submit(function(e){
     e.preventDefault();
 
@@ -719,11 +733,111 @@ jQuery(document).ready(function() {
           }
         }
       })
-
-
-
     }
   });
 });
 
 
+
+// **************** A4 funcitonality **********************
+
+// display # of rows in each table
+function status(){
+
+}
+
+
+// listener for logging the user in
+$('#dbLoginForm').submit(function(e){
+
+  e.preventDefault();
+
+  // get user info
+  var userName  = $('#dbUserName').val();
+  var password  = $('#dbPassword').val();
+  var dbName    = $('#dbName').val();
+
+
+  console.log( userName + password + dbName );
+
+  // send it to the server
+  $.ajax({
+    type: 'get',
+    dataType: 'json',
+    url: '/login',
+    data: {
+      userName: userName,
+      password: password,
+      dbName: dbName
+    },
+
+    success: function( data ){
+
+      if( data.success == true ){
+        alert('successfully connected');
+      } else {
+        alert('Could not connect to database, please re-enter information and try again.');
+      }
+    }
+  });
+
+  // update status
+
+});
+
+// listener for saving all the files
+$(document).on('click', '#saveFilesButton', function(e){
+
+  var fileName;
+  var version;
+  var creator;
+
+  e.preventDefault();
+
+  // retrieve the valid files
+  $.ajax({
+    type: 'get',
+    dataType: 'json',
+    url: '/retrieveFiles',
+
+    success: function( data ){
+      
+      // for each file, get its data n shit
+      for( let gpxFile in data.gpxFilesObject ){
+        version = data.gpxFilesObject[gpxFile].version;        
+        creator = data.gpxFilesObject[gpxFile].creator;
+        fileName = gpxFile;
+
+        // send the querie
+        $.ajax({
+          type: 'get',
+          dataType: 'json',
+          url: '/saveFile',
+          data: {
+            version: version,
+            creator: creator,
+            fileName: fileName
+          },
+
+          success: function( data ){
+            if( data.success ){
+              console.log('saved file');
+            }
+          }
+        })
+      
+      }
+      // end connection
+      // display status
+    }
+  })
+
+});
+
+// let fileTable = "CREATE TABLE IF NOT EXISTS FILE(   " +
+// "gpx_id      INT           NOT NULL AUTO_INCREMENT, " + 
+// "file_name   VARCHAR(60)   NOT NULL,                " + 
+// "ver         DECIMAL(2,1)  NOT NULL,                " + 
+// "creator     VARCHAR(60)   NOT NULL,                " + 
+// "PRIMARY KEY (gpx_id)                               " + 
+// ")";
