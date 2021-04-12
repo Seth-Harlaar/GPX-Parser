@@ -751,6 +751,7 @@ function status(){
 
     success: function(data){
       if( data.success == true ){
+        console.log('wow');
         alert( data.status );
       }
     }
@@ -803,6 +804,7 @@ async function saveFiles(){
       }
     }
   })
+  status();
 }
 
 async function saveRoutes( fileName, gpx_id ){
@@ -988,4 +990,10 @@ $(document).on('click', '#clearDataButton', function(){
       }
     }
   });
+  status();
+});
+
+$(document).on('click', '#statusButton', function(){
+  console.log('displaying status');
+  status();  
 });

@@ -769,18 +769,59 @@ app.get('/clearData', async function(req, res){
   }
 });
 
-app.get('/getStatus', function(req, res){
-  var success;
+app.get('/getStatus', async function(req, res){
+  var success = true;
+  var query;
+
+  let rows;
+  let fields;
 
   // get each piece of info
   if( globalConnected ){
-    var files;
-    var routes;
-    var points;
+    var files = 0;
+    var routes = 0;
+    var points = 0;
 
     // get files
-    // select count(*) from POINT; etc
+    query = "SELECT COUNT(*) FROM FILE";
+
+    try{
+      [rows, fields] = await globalConnection.execute(query);
+      files = rows[0]['COUNT(*)'];
+    } catch(e){
+      console.log('error while getting file count ' + e);
+      success = false;
+    }
+
+    // get routes
+    query = "SELECT COUNT(*) FROM ROUTE";
+
+    try{
+      [rows, fields] = await globalConnection.execute(query);
+      routes = rows[0]['COUNT(*)'];
+    } catch(e){
+      console.log('error while getting file count ' + e);
+      success = false;
+    }
+
+    // get files
+    query = "SELECT COUNT(*) FROM POINT";
+
+    try{
+      [rows, fields] = await globalConnection.execute(query);
+      points = rows[0]['COUNT(*)'];
+    } catch(e){
+      console.log('error while getting file count ' + e);
+      success = false;
+    }
+
+    var statusMessage = 'Number of files: ' + files + ', \nNumber of routes: ' + routes + ', \nNumber of points: ' + points;
+
+    console.log( statusMessage );
+
+    res.send({
+      success: success,
+      status: statusMessage
+    })
   }
-
-
 });
