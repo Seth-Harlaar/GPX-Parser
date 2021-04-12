@@ -740,54 +740,22 @@ jQuery(document).ready(function() {
 
 
 // **************** A4 funcitonality **********************
+// functions
 
 // display # of rows in each table
 function status(){
-
-}
-
-// create the tables on start up if they don't already exist
-function setupTables(){
-
-}
-
-// listener for logging the user in
-$('#dbLoginForm').submit(function(e){
-
-  e.preventDefault();
-
-  // get user info
-  var userName  = $('#dbUserName').val();
-  var password  = $('#dbPassword').val();
-  var dbName    = $('#dbName').val();
-
-
-  console.log( userName + password + dbName );
-
-  // send it to the server
   $.ajax({
     type: 'get',
     dataType: 'json',
-    url: '/login',
-    data: {
-      userName: userName,
-      password: password,
-      dbName: dbName
-    },
+    url: '/getStatus',
 
-    success: function( data ){
-
+    success: function(data){
       if( data.success == true ){
-        alert('successfully connected');
-      } else {
-        alert('Could not connect to database, please re-enter information and try again.');
+        alert( data.status );
       }
     }
   });
-
-  // update status
-
-});
+}
 
 
 async function saveFiles(){
@@ -803,7 +771,7 @@ async function saveFiles(){
 
     success: async function( data ){
       
-      // for each file, get its data n shit
+      // for each file, get its data n stuff
       for( let gpxFile in data.gpxFilesObject ){
         version = data.gpxFilesObject[gpxFile].version;        
         creator = data.gpxFilesObject[gpxFile].creator;
@@ -933,12 +901,91 @@ async function savePoints( routeName, fileName, route_id ){
 }
 
 
+// listeners
+
 // listener for saving all the files
-// yes i know this function is horrible to look at and probably should be about 15 functions instead of 1
-// but im too lazy and this will only be used 1-2 times max so idc
 $(document).on('click', '#saveFilesButton', function(e){
 
   e.preventDefault();
 
   saveFiles();
+});
+
+
+
+// listener for logging the user in
+$('#dbLoginForm').submit(function(e){
+
+  e.preventDefault();
+
+  // get user info
+  var userName  = $('#dbUserName').val();
+  var password  = $('#dbPassword').val();
+  var dbName    = $('#dbName').val();
+
+
+  console.log( userName + password + dbName );
+
+  // send it to the server
+  $.ajax({
+    type: 'get',
+    dataType: 'json',
+    url: '/login',
+    data: {
+      userName: userName,
+      password: password,
+      dbName: dbName
+    },
+
+    success: function( data ){
+
+      if( data.success == true ){
+        alert('successfully connected');
+
+        $.ajax({
+          type: 'get',
+          dataType: 'json',
+          url: '/createTables',
+          
+          success: function(data){
+            if( data.success ){
+              console.log('successfully created all tables');
+            }
+          }
+        })
+
+      } else {
+        alert('Could not connect to database, please re-enter information and try again.');
+      }
+    }
+  });
+});
+
+// listener for logging the user out
+$(document).on('click', '#logoutButton', function(){
+
+  $.ajax({
+    type: 'get',
+    dataType: 'json',
+    url: '/logout',
+    
+    success: function(data){
+      alert('disconnected from server');
+    }
+  });
+
+});
+
+$(document).on('click', '#clearDataButton', function(){
+  $.ajax({
+    type: 'get', 
+    dataType: 'json',
+    url: '/clearData',
+    
+    success: function(data){
+      if( data.success){
+        console.log('Successfully cleared all data from db ');
+      }
+    }
+  });
 });

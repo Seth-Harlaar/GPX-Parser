@@ -42,10 +42,11 @@ var gpx = ffi.Library( './libgpxparser', {
 });
 
 
-let connection;
-let username;
-let password;
-let dbName;
+let globalConnection;
+let globalUser;
+let globalPass;
+let globalName;
+let globalConnected = false;
 
 // Send HTML at root, do not change
 app.get('/', function(req,res){
@@ -510,50 +511,50 @@ app.get('/validateFiles', function(req, res){
 
 // create connection
 app.get('/login', async function( req, res){
-  var connected = true;
-
   // get info
-  var userName = req.query.userName;
-  var password = req.query.password;
-  var dbName = req.query.dbName;
+  globalUser = req.query.userName;
+  globalPass = req.query.password;
+  globalName = req.query.dbName;
 
   // try connecting
   try{
-    connection = await mysql.createConnection({
+    globalConnection = await mysql.createConnection({
       host: 'dursley.socs.uoguelph.ca',
-      user: userName,
-      password: password,
-      database: dbName
+      user: globalUser,
+      password: globalPass,
+      database: globalName
     })
 
-    connection.connect();
+    globalConnected = true;
+    console.log('successfully connected to the db');
   } catch(e) {
     console.log( 'connection error' + e );
-    connected = false;
   } finally {
     // send response
     res.send({
-      success: connected
-    });
+      success: globalConnected
+    })
   }
 });
 
 
+app.get('/logout', async function(req, res){
+  try{
+    await globalConnection.end();
+  } catch(e){
+    console.log('error loggint out of db '+ e );
+  }
+  globalConnected = false;
+  res.send({
+    success: true
+  })
+})
+
 
 // setup tables 
 app.get('/createTables', async function(req, res){
-  let connection;
-  try{
-    connection = await mysql.createConnection({
-      host: 'dursley.socs.uoguelph.ca',
-      user: 'sharlaar',
-      password: '1109524',
-      database: 'sharlaar'
-    })
-  } catch(e) {
-    console.log( 'connection error' + e );
-  }
-    
+  var success = true;
+
   let fileTable = "CREATE TABLE IF NOT EXISTS FILE(   " +
   "gpx_id      INT           NOT NULL AUTO_INCREMENT, " + 
   "file_name   VARCHAR(60)   NOT NULL,                " + 
@@ -582,14 +583,21 @@ app.get('/createTables', async function(req, res){
   "FOREIGN KEY  (route_id)      REFERENCES ROUTE(route_id) ON DELETE CASCADE   " +
   ")";
 
-  let [rows, fields] = await connection.execute( fileTable );
-  [rows, fields] = await connection.execute( routeTable );
-  [rows, fields] = await connection.execute( pointTable );
-  
-  console.log( rows + fields );
-
-  connection.end();
-  res.redirect('/');
+  if( globalConnected ){
+    try{
+      let [rows, fields] = await globalConnection.execute( fileTable );
+      [rows, fields] = await globalConnection.execute( routeTable );
+      [rows, fields] = await globalConnection.execute( pointTable );
+      
+    } catch(e){
+      console.log('Error creating tables ' + e);
+      success = false;
+    } finally {
+      res.send({
+        success: success
+      })
+    }
+  }
 });
 
 
@@ -606,26 +614,18 @@ app.get('/saveFile', async function(req, res){
   var version = req.query.version;
   var creator = req.query.creator;
 
-  // open a connection
-  let connection;
-  try{
-    connection = await mysql.createConnection({
-      host: 'dursley.socs.uoguelph.ca',
-      user: 'sharlaar',
-      password: '1109524',
-      database: 'sharlaar'
-    })
-    
-    // if successfully connected, get the query
+  // if successfully connected, get the query
+  if( globalConnected ){
+
     // save the file info to FILE table
     var fileInsert = 'INSERT INTO FILE' +
     '(file_name, ver, creator)' +
     'values ( "' + fileName + '",' + version + ', "' + creator +  '")';
-
+  
     // check first that the filename is not already present in the db
     // get list of all file names
     try{
-      [rows, fields] = await connection.execute('select file_name from FILE');
+      [rows, fields] = await globalConnection.execute('select file_name from FILE');
       
       // compare against each file name
       for( let row in rows ){
@@ -638,18 +638,18 @@ app.get('/saveFile', async function(req, res){
       console.log('Error retrieving all file names: ' + e);
       unique = false;
     }
-
+  
     // if it is a unique file name and passes try/catch block, send it to the conection
     if( unique ){
       // try insert the file
       try{
         console.log( fileInsert );
-        let [rows, fields] = await connection.execute( fileInsert );
+        let [rows, fields] = await globalConnection.execute( fileInsert );
         var success = true;
         console.log('successfully saved file: ' + fileName);
       
         gpx_id = rows.insertId;
-
+  
       // if sending the file fails
       } catch(e){
         console.log('Eror trying to insert file ' + e);
@@ -657,26 +657,17 @@ app.get('/saveFile', async function(req, res){
       }
     }
   
-  // if connecting fails
-  } catch(e) {
-    console.log( 'connection error ' + e );    
-
-  // at the end of everything
-  } finally {
+    // at the end of everything
     if( !success ){
       console.log('Could not save files')
     }
-
-    connection.end();
-
+  
     res.send({
+      connected: globalConnected,
       success: success,
       gpx_id: gpx_id
-    })
+    });
   }
-
-  // close the connection
-  connection.end();
 });
 
 
@@ -694,15 +685,7 @@ app.get('/saveRoute', async function(req, res){
 
   var success = true;
 
-  try{
-    // connect
-    connection = await mysql.createConnection({
-      host: 'dursley.socs.uoguelph.ca',
-      user: 'sharlaar',
-      password: '1109524',
-      database: 'sharlaar'
-    })
-  
+  if( globalConnected ){
     // save the route
     var routeInsert = "INSERT INTO ROUTE " + 
     "(route_name, route_len, gpx_id) " +
@@ -711,27 +694,21 @@ app.get('/saveRoute', async function(req, res){
     
     // try execute insert
     try{
-      [rows, fields] = await connection.execute( routeInsert );
-
+      [rows, fields] = await globalConnection.execute( routeInsert );
       route_id = rows.insertId;
-
+  
     } catch(e){
       console.log('Failed inserting route into ROUTE table ' + e);
       success = false;
     }
-
-  } catch(e){
-    console.log('Failed creating connection in save route ' + e );
-    success = false;
-  } finally {
-    res.send({
-      success: success,
-      route_id: route_id
-    });
   }
-  
-  // end connection
-  connection.end();
+
+  res.send({
+    connected: globalConnected,
+    success: success,
+    route_id: route_id
+  });
+
 });
 
 app.get('/savePoint', async function(req, res){
@@ -746,46 +723,64 @@ app.get('/savePoint', async function(req, res){
   var pointName = req.query.pointName;
   var route_id = req.query.route_id;
 
-  // make connection
-  try{
-    // connect
-    connection = await mysql.createConnection({
-      host: 'dursley.socs.uoguelph.ca',
-      user: 'sharlaar',
-      password: '1109524',
-      database: 'sharlaar'
-    })
-
+  if( globalConnected ){
+    
     // make insert string
     var insertPoint = "INSERT INTO POINT " +
     "(point_index, latitude, longitude, point_name, route_id) " +
     "values (" + index + "," + lat + "," + long + ",'" + pointName + "'," + route_id + ")" 
     
     console.log( insertPoint );
-
+  
     // try execute
     try{
-      [rows, fields] = await connection.execute( insertPoint );
+      [rows, fields] = await globalConnection.execute( insertPoint );
     } catch(e){
       console.log('error adding point: ' + e);
       success = false;
+    } finally {
+      res.send({
+        connected: globalConnected,
+        success: success
+      });
     }
-
-
-  } catch(e) {
-    console.log('error connecting in savePoints: ' + e );
-    success = false;
-  } finally {
-    res.send({
-      success: success
-    })
-  }
-
-  // end connection
-  try {
-    connection.end();
-  } catch(e){
-    console.log('error ending connection: '+ e);
   }
 });
 
+
+app.get('/clearData', async function(req, res){
+  var success = true;
+  
+  // make the query
+  var deleteQuery = "DELETE FROM FILE";
+
+  if( globalConnected ){
+    try{
+      await globalConnection.execute( deleteQuery );
+      console.log('Cleared all data');
+    } catch(e) {
+      console.log('Error while trying to clear all data from db ' + e);
+      success = false;
+    } finally {
+      res.send({
+        success: success
+      });
+    }
+  }
+});
+
+app.get('/getStatus', function(req, res){
+  var success;
+
+  // get each piece of info
+  if( globalConnected ){
+    var files;
+    var routes;
+    var points;
+
+    // get files
+    // select count(*) from POINT; etc
+  }
+
+
+});
