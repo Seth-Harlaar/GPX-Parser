@@ -746,6 +746,10 @@ function status(){
 
 }
 
+// create the tables on start up if they don't already exist
+function setupTables(){
+
+}
 
 // listener for logging the user in
 $('#dbLoginForm').submit(function(e){
@@ -786,6 +790,8 @@ $('#dbLoginForm').submit(function(e){
 });
 
 // listener for saving all the files
+// yes i know this function is horrible to look at and probably should be about 15 functions instead of 1
+// but im too lazy and this will only be used 1-2 times max so idc
 $(document).on('click', '#saveFilesButton', function(e){
 
   var fileName;
@@ -800,7 +806,7 @@ $(document).on('click', '#saveFilesButton', function(e){
     dataType: 'json',
     url: '/retrieveFiles',
 
-    success: function( data ){
+    success: async function( data ){
       
       // for each file, get its data n shit
       for( let gpxFile in data.gpxFilesObject ){
@@ -809,7 +815,7 @@ $(document).on('click', '#saveFilesButton', function(e){
         fileName = gpxFile;
 
         // send the querie
-        $.ajax({
+        await $.ajax({
           type: 'get',
           dataType: 'json',
           url: '/saveFile',
@@ -819,13 +825,70 @@ $(document).on('click', '#saveFilesButton', function(e){
             fileName: fileName
           },
 
-          success: function( data ){
-            if( data.success ){
+          // if the file was successfully saved
+          success: async function( data ){
+            if( data.success == true ){
               console.log('saved file');
+
+              var gpx_id = data.gpx_id;
+              // get each route for the file
+              console.log('requesting route info for '+ fileName + ' with gpx_id: '+ gpx_id );
+
+              await $.ajax({
+                type: 'get', 
+                dataType: 'json',
+                url: '/getRoutes',
+                data: {
+                  name: fileName
+                },
+
+                success: async function( data ){
+
+                  // check if there are any routes
+                  if( data.gpxRoutesObject.length != 0 ){
+                    // for each route in the obj
+                    for( let route in data.gpxRoutesObject ){
+                      // get the info
+                      var routeLength = data.gpxRoutesObject[route].len;
+                      var routeName = data.gpxRoutesObject[route].name;
+                      
+                      // make a call to server to save the route
+                      await $.ajax({
+                        type: 'get', 
+                        dataType: 'json',
+                        url: '/saveRoute',
+                        data: {
+                          name: routeName,
+                          routeLength: routeLength,
+                          gpx_id: gpx_id
+                        },
+
+                        success: async function(data){
+                          if( data.success == true ){
+                            console.log('Successfully save route named: ' + routeName );
+                          }
+
+                          // for each route found in the file
+                          // send a request to get the wpt data
+                          console.log('getting points for route: ' + routeName + ' from file: ' + fileName );
+                          await $.ajax({
+                            type: 'get',
+                            dataType: 'json',
+                            url: 'getPoints',
+                            data: {
+                              routeName: routeName,
+                              fileName: fileName
+                            }
+                          })
+                        }
+                      })
+                    }
+                  }
+                }
+              });
             }
           }
-        })
-      
+        });
       }
       // end connection
       // display status

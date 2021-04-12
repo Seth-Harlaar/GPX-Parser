@@ -1473,3 +1473,101 @@ char * validateGPXFile( char * fileName ){
     return "false";
   }
 }
+
+
+
+// A4 functions
+char * waypointToJSON( Waypoint * wpt ){
+  float lon = wpt->longitude;
+  float lat = wpt->latitude;
+
+  char * json = malloc(200 + strlen( wpt->name ) + 1);
+
+  sprintf( json, "{\"lat\":%0.7f,\"lon\":%0.7f,\"name\":\"%s\"}", lat, lon, wpt->name );
+
+  return json;
+}
+
+char * waypointListToJSON( List * wpts ){
+  Waypoint * wpt;
+  Waypoint * secondWpt;
+  ListIterator iter;
+  ListIterator secondIter;
+
+  char * json;
+  char * temp;
+
+  json = malloc(20);
+
+  if( wpts == NULL || getLength( wpts ) == 0 ){
+    strcpy( json, "[]" );
+    return json;
+  }
+
+  // start the bracket
+  strcpy( json, "[");
+
+  // make iterators
+  iter = createIterator( wpts );
+  secondIter = createIterator( wpts );
+
+  // get the second wpt
+  secondWpt = nextElement( &secondIter );
+  secondWpt = nextElement( &secondIter );
+
+  // start loop at the first
+  for( wpt = nextElement( &iter ); wpt != NULL; wpt = nextElement( &iter ) ){
+    // get the first wpt string
+    temp = waypointToJSON( wpt );
+
+    // realloc the json
+    int newLen = strlen( json ) + 1 + strlen( temp ) + 1 + 10;
+
+    json = realloc( json, newLen );
+
+    // add the temp string
+    strcat( json, temp );
+
+    // if the next wpt is not null, add a comma and continue
+    if( secondWpt != NULL ){
+      strcat( json, ",");
+    }
+    secondWpt = nextElement( &secondIter );
+
+    free( temp );
+  }
+
+  strcat( json, "]" );
+
+  return json;
+}
+
+
+char * routeNameToWptJSON( char * fileName, char * routeName ){
+  if( fileName == NULL || routeName == NULL ){
+    return "[]";
+  }
+
+  char * json;
+
+  // find file
+  GPXdoc * doc = createValidGPXdoc( fileName, "gpx.xsd" );
+
+  if( doc == NULL ){
+    return "[]";
+  }
+
+  // find route
+  Route * route = getRoute( doc, routeName );
+
+  if( route == NULL ){
+    return "[]";
+  }
+
+  // get json
+  json = waypointListToJSON( route->waypoints );
+
+  // clean up and return
+  return json;
+
+}

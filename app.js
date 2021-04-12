@@ -37,10 +37,15 @@ var gpx = ffi.Library( './libgpxparser', {
   'renameTrack' : ['string', ['string', 'string', 'string']],
   'routesBetweenToJSON': ['string', ['string', 'float', 'float', 'float', 'float', 'float']],
   'tracksBetweenToJSON': ['string', ['string', 'float', 'float', 'float', 'float', 'float']],
-  'validateGPXFile' : ['string', ['string']]
+  'validateGPXFile' : ['string', ['string']],
+  'routeNameToWptJSON' : ['string', ['string', 'string']]
 });
 
+
 let connection;
+let username;
+let password;
+let dbName;
 
 // Send HTML at root, do not change
 app.get('/', function(req,res){
@@ -261,6 +266,18 @@ app.get('/getOtherData', function( req, res) {
       content: sendData
     });
   }
+});
+
+app.get('/getPoints', function( req, res){
+  // get info
+  var fileName = req.query.fileName;
+  var routeName = req.query.routeName;
+
+  // send to c file
+
+
+  // parse and return
+
 });
 
 
@@ -578,6 +595,7 @@ app.get('/saveFile', async function(req, res){
   var unique = true;
   let rows;
   let fields;
+  let gpx_id = 0;
   
   // file data 
   var fileName = req.query.fileName;
@@ -621,11 +639,14 @@ app.get('/saveFile', async function(req, res){
     if( unique ){
       // try insert the file
       try{
+        console.log( fileInsert );
         let [rows, fields] = await connection.execute( fileInsert );
         var success = true;
         console.log('successfully saved file: ' + fileName);
         console.log(rows);
       
+        gpx_id = rows.insertId;
+
       // if sending the file fails
       } catch(e){
         console.log('Eror trying to insert file ' + e);
@@ -646,12 +667,107 @@ app.get('/saveFile', async function(req, res){
     connection.end();
 
     res.send({
+      success: success,
+      gpx_id: gpx_id
+    })
+  }
+
+  // close the connection
+  connection.end();
+});
+
+
+
+// save a route
+app.get('/saveRoute', async function(req, res){
+  // get the info - name, length, gpx_id, 
+  var name = req.query.name;
+  var routeLength = req.query.routeLength;
+  var gpx_id = req.query.gpx_id;
+
+  let rows;
+  let fields;
+  let route_id = 0;
+
+  var success = true;
+
+  try{
+    // connect
+    connection = await mysql.createConnection({
+      host: 'dursley.socs.uoguelph.ca',
+      user: 'sharlaar',
+      password: '1109524',
+      database: 'sharlaar'
+    })
+  
+    // save the route
+    var routeInsert = "INSERT INTO ROUTE " + 
+    "(route_name, route_len, gpx_id) " +
+    "values( '" +  name + "', " + routeLength + ", " + gpx_id + ");";
+    console.log( routeInsert );
+    
+    // try execute insert
+    try{
+      [rows, fields] = await connection.execute( routeInsert );
+
+      console.log( rows );
+
+      route_id = rows.insertId;
+
+    } catch(e){
+      console.log('Failed inserting route into ROUTE table ' + e);
+      success = false;
+    }
+
+  } catch(e){
+    console.log('Failed creating connection in save route ' + e );
+    success = false;
+  } finally {
+    res.send({
+      success: success,
+      route_id: route_id
+    });
+  }
+  
+  // end connection
+  connection.end();
+});
+
+app.get('/savePoints', function(req, res){
+  var success = true;
+  // get info
+  var index = req.query.index;
+  var lat = req.query.lat;
+  var long = req.query.long;
+  var pointName = req.query.pointName;
+  var route_id = req.query.route_id;
+
+  // make connection
+  try{
+    // connect
+    connection = await mysql.createConnection({
+      host: 'dursley.socs.uoguelph.ca',
+      user: 'sharlaar',
+      password: '1109524',
+      database: 'sharlaar'
+    })
+
+    // make insert string
+    var insertPoint = "INSERT INTO POINT" +
+    "(point_index, latitude, longitude, point_name, route_id)" +
+    "values (" + index + "," + lat + "," + long + ",'" + pointName + "'," + route_id + ")" 
+
+
+  } catch(e) {
+    console.log('error connecting in savePoints ' + e );
+    success = false;
+  } finally {
+    res.send({
       success: success
     })
   }
 
-
-
-  // close the connection
-
+  // end connection
+  connection.end();
 });
+
