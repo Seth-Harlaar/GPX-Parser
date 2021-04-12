@@ -274,10 +274,14 @@ app.get('/getPoints', function( req, res){
   var routeName = req.query.routeName;
 
   // send to c file
+  var data = JSON.parse( gpx.routeNameToWptJSON( path.join( __dirname + '/uploads/' + fileName ), routeName ) );
 
+  console.log( data );
 
-  // parse and return
-
+  res.send({
+    success: true,
+    gpxPointData: data
+  });
 });
 
 
@@ -643,7 +647,6 @@ app.get('/saveFile', async function(req, res){
         let [rows, fields] = await connection.execute( fileInsert );
         var success = true;
         console.log('successfully saved file: ' + fileName);
-        console.log(rows);
       
         gpx_id = rows.insertId;
 
@@ -710,8 +713,6 @@ app.get('/saveRoute', async function(req, res){
     try{
       [rows, fields] = await connection.execute( routeInsert );
 
-      console.log( rows );
-
       route_id = rows.insertId;
 
     } catch(e){
@@ -733,7 +734,10 @@ app.get('/saveRoute', async function(req, res){
   connection.end();
 });
 
-app.get('/savePoints', function(req, res){
+app.get('/savePoint', async function(req, res){
+  let rows;
+  let fields;
+  
   var success = true;
   // get info
   var index = req.query.index;
@@ -753,13 +757,23 @@ app.get('/savePoints', function(req, res){
     })
 
     // make insert string
-    var insertPoint = "INSERT INTO POINT" +
-    "(point_index, latitude, longitude, point_name, route_id)" +
+    var insertPoint = "INSERT INTO POINT " +
+    "(point_index, latitude, longitude, point_name, route_id) " +
     "values (" + index + "," + lat + "," + long + ",'" + pointName + "'," + route_id + ")" 
+    
+    console.log( insertPoint );
+
+    // try execute
+    try{
+      [rows, fields] = await connection.execute( insertPoint );
+    } catch(e){
+      console.log('error adding point: ' + e);
+      success = false;
+    }
 
 
   } catch(e) {
-    console.log('error connecting in savePoints ' + e );
+    console.log('error connecting in savePoints: ' + e );
     success = false;
   } finally {
     res.send({
@@ -768,6 +782,10 @@ app.get('/savePoints', function(req, res){
   }
 
   // end connection
-  connection.end();
+  try {
+    connection.end();
+  } catch(e){
+    console.log('error ending connection: '+ e);
+  }
 });
 
