@@ -519,6 +519,9 @@ jQuery(document).ready(function() {
             reloadViewPanel();
             reloadFiles();
             console.log( 'successfully added new route to file');
+
+            // at the end save a new route to db
+            saveNewRoute( fileName, newRouteName );
           } else {
             alert('please select a file to add route to ');
           }
@@ -743,15 +746,14 @@ jQuery(document).ready(function() {
 // functions
 
 // display # of rows in each table
-function status(){
-  $.ajax({
+async function status(){
+  await $.ajax({
     type: 'get',
     dataType: 'json',
     url: '/getStatus',
 
-    success: function(data){
+    success: async function(data){
       if( data.success == true ){
-        console.log('wow');
         alert( data.status );
       }
     }
@@ -797,16 +799,17 @@ async function saveFiles(){
               var gpx_id = data.gpx_id;
               
               // save the routes of the file
-              saveRoutes( fileName, gpx_id );
+              await saveRoutes( fileName, gpx_id );
             }
           }
         });
       }
     }
   })
-  status();
 }
 
+
+// save all the routes of a file
 async function saveRoutes( fileName, gpx_id ){
   // get each route for the file
   console.log('saving routes for '+ fileName + ' with gpx_id: '+ gpx_id );
@@ -849,10 +852,80 @@ async function saveRoutes( fileName, gpx_id ){
               var route_id = data.route_id;
 
               // save the routes point info
-              savePoints( routeName, fileName, route_id );
+              await savePoints( routeName, fileName, route_id );
             }
           })
         }
+      }
+    }
+  });
+}
+
+// overload on saveRoutes
+async function saveNewRoute( fileName, newRouteName ){
+  // get the gpx_id, then do same as other saveRoutes
+  $.ajax({
+    type: 'get',
+    dataType: 'json',
+    url: '/getGPXID',
+    data: {
+      fileName: fileName
+    },
+    
+    success: async function(data){
+      // if a gpx_id was found
+      if( data.gpx_id != 0 ){
+        // make a call to get all the route info for the file
+        var gpx_id = data.gpx_id;
+        await $.ajax({
+          type: 'get', 
+          dataType: 'json',
+          url: '/getRoutes',
+          data: {
+            name: fileName
+          },
+          
+          success: async function( data ){
+      
+            // check if there are any routes
+            if( data.gpxRoutesObject.length != 0 ){
+              // for each route in the file
+              for( let route in data.gpxRoutesObject ){
+                // only run if the the name is the same as the new route we are looking for
+                if( data.gpxRoutesObject[route].name == newRouteName ){
+      
+                  // get the info
+                  var routeLength = data.gpxRoutesObject[route].len;
+                  var routeName = data.gpxRoutesObject[route].name;
+                  
+                  // make a call to server to save the route
+                  await $.ajax({
+                    type: 'get', 
+                    dataType: 'json',
+                    url: '/saveRoute',
+                    data: {
+                      name: routeName,
+                      routeLength: routeLength,
+                      gpx_id: gpx_id
+                    },
+      
+                    success: async function(data){
+                      if( data.success == true ){
+                        console.log('Successfully saved route named: ' + routeName );
+                      }
+      
+                      // get the route id
+                      var route_id = data.route_id;
+      
+                      // save the routes point info
+                      await savePoints( routeName, fileName, route_id );
+                    }
+                  })
+                }
+              }
+            }
+          }
+        });
       }
     }
   });
@@ -906,11 +979,12 @@ async function savePoints( routeName, fileName, route_id ){
 // listeners
 
 // listener for saving all the files
-$(document).on('click', '#saveFilesButton', function(e){
-
+$(document).on('click', '#saveFilesButton', async function(e){
   e.preventDefault();
 
-  saveFiles();
+  await saveFiles();
+
+  await status();
 });
 
 
@@ -944,6 +1018,8 @@ $('#dbLoginForm').submit(function(e){
       if( data.success == true ){
         alert('successfully connected');
 
+        $('#logStatus').html('Currently: Logged In');
+
         $.ajax({
           type: 'get',
           dataType: 'json',
@@ -973,13 +1049,15 @@ $(document).on('click', '#logoutButton', function(){
     
     success: function(data){
       alert('disconnected from server');
+      $('#logStatus').html('Currently: Logged Out');
     }
   });
 
 });
 
-$(document).on('click', '#clearDataButton', function(){
-  $.ajax({
+// listener for clearing all data
+$(document).on('click', '#clearDataButton', async function(){
+  await $.ajax({
     type: 'get', 
     dataType: 'json',
     url: '/clearData',
@@ -990,10 +1068,10 @@ $(document).on('click', '#clearDataButton', function(){
       }
     }
   });
-  status();
+  await status();
 });
 
-$(document).on('click', '#statusButton', function(){
+$(document).on('click', '#statusButton', async function(){
   console.log('displaying status');
-  status();  
+  await status();  
 });

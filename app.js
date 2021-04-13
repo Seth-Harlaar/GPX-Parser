@@ -277,8 +277,6 @@ app.get('/getPoints', function( req, res){
   // send to c file
   var data = JSON.parse( gpx.routeNameToWptJSON( path.join( __dirname + '/uploads/' + fileName ), routeName ) );
 
-  console.log( data );
-
   res.send({
     success: true,
     gpxPointData: data
@@ -346,6 +344,7 @@ app.get('/newRoute', function(req, res){
 
   var success = gpx.addNewRoute( JSON.stringify(routeData), path.join( __dirname + '/uploads/' + fileName ) );
 
+
   // now add the new other data to the new route
   var wpts = req.query.wptData.wpts;
 
@@ -373,19 +372,53 @@ app.get('/newRoute', function(req, res){
 });
 
 
-app.get('/renameRoute', function(req, res){
+app.get('/renameRoute', async function(req, res){
+
+  let rows;
+  let fields;
 
   // need old track name and new track name and file name
   var oldName = req.query.oldName;
   var newName = req.query.newName;
   var fileName = req.query.fileName;
 
-  console.log('Change name from ' + oldName + ' to ' + newName + ' in file ' +fileName );
-
+  
   // send to c function
   var success = gpx.renameRoute( oldName, path.join( __dirname + '/uploads/' + fileName ), newName );
-  console.log( success );
+  
+  if( success == 'true' ){
+    console.log('Changed name from ' + oldName + ' to ' + newName + ' in file ' +fileName );
+  } else {
+    console.log('Failed to change name' );
+  }
 
+  // update name in the db
+  // get gpx_id
+  var findID = "SELECT gpx_id FROM FILE " +
+  "WHERE file_name = '" + fileName + "'";
+
+  if( globalConnected ){
+    try{
+      [rows, fields] = await globalConnection.execute(findID);
+
+      var gpx_id = rows[0]['gpx_id'];
+
+      // update where name and gpx id
+      var updateRoute = "UPDATE ROUTE" +
+      " SET route_name = '" + newName + "'" +
+      " WHERE gpx_id = " + gpx_id + " AND route_name = '" + oldName + "';";
+
+      try{
+        console.log( updateRoute );
+        [rows, fields] = await globalConnection.execute(updateRoute);
+
+      } catch(e){
+        console.log('Error updating route to new name ' + e );
+      }
+    } catch(e){
+      console.log('Error retrieving gpx_id in rename route ' + e );
+    }
+  }
 
   res.send({
     success: success
@@ -819,9 +852,42 @@ app.get('/getStatus', async function(req, res){
 
     console.log( statusMessage );
 
-    res.send({
+    await res.send({
       success: success,
       status: statusMessage
     })
+  }
+});
+
+
+app.get('/getGPXID', async function(req, res){
+  let rows;
+  let fields;
+  console.log('getting gpxid')
+  var gpx_id = 0;
+
+  var fileName = req.query.fileName;
+
+  // get gpx_id
+  var findID = "SELECT gpx_id FROM FILE " +
+  "WHERE file_name = '" + fileName + "';";
+
+  console.log( findID );
+
+  if( globalConnected ){
+    try{
+      console.log( findID );
+      [rows, fields] = await globalConnection.execute(findID);
+
+      console.log(rows);
+
+      gpx_id = rows[0]['gpx_id'];
+    } catch(e){
+      console.log('Failed to get gpx_id ' + e );
+    } finally {
+      res.send({
+        gpx_id: gpx_id
+      });
+    }
   }
 });
