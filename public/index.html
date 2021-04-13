@@ -349,16 +349,16 @@
   <h4 class="mt-3">5. Display N shortest/longest routes from selected file</h4>
   <form id="displayNRoutesFromFile">
 
-    <h5>Sort by:</h5>
+    <h5>Chose:</h5>
     <div class="form-check form-check-inline">
-      <input class="form-check-input" type="radio" name="sort" id="exampleRadios1" value="short" checked>
+      <input class="form-check-input" type="radio" name="order" id="exampleRadios1" value="short" checked>
       <label class="form-check-label" for="exampleRadios1">
         Shortest
       </label>
     </div>
 
     <div class="form-check form-check-inline">
-      <input class="form-check-input" type="radio" name="sort" id="exampleRadios2" value="long">
+      <input class="form-check-input" type="radio" name="order" id="exampleRadios2" value="long">
       <label class="form-check-label" for="exampleRadios2">
         Longest
       </label>
@@ -366,6 +366,20 @@
 
     <div class="form-group">
       <input type="text" placeholder="Numer of routes to display ('all' for all of them)" class="form-control" id="numberOfRoutes">
+    </div>
+
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="radio" name="sort" id="exampleRadios1" value="short" checked>
+      <label class="form-check-label" for="exampleRadios1">
+        Name
+      </label>
+    </div>
+
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="radio" name="sort" id="exampleRadios2" value="long">
+      <label class="form-check-label" for="exampleRadios2">
+        Length
+      </label>
     </div>
 
     <div>
@@ -378,6 +392,22 @@
       <button class="btn btn-info mt-3" > Display routes </button>
     </div>
   </form>
+
+
+  <!-- table for return of queries -->
+  <div class="table-responsive overflow-auto h-50 mt-3">
+    <table class="table table-hover">
+      <thead class="thead-dark">
+        <tr id="resultTableColHeaders">
+        </tr>
+      </thead>
+
+      <tbody id="resultTableBody">
+        <td colspan="5" class="text-center"> No Results Yet </td>
+      </tbody>
+    </table>
+  </div>
+
 
 
   <!-- BULL

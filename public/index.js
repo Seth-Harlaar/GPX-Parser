@@ -1153,8 +1153,49 @@ async function executeQuery( queryString ){
 }
 
 // function to display the result in table
-function displayResults(queryData){
-  console.log(queryData);
+function displayResults(data){
+  console.log(data);
+
+  // empty the table
+  $('#resultTableColHeaders').empty();
+  $('#resultTableBody').empty();
+
+
+  
+
+  if(data.length != 0){
+
+    // fill in the table headers
+    for( let header in data[0] ){
+      $('#resultTableColHeaders').append(
+        "<th scope='col'>" + header + "</th>"
+      );
+    }
+
+    // for each element in the array
+    for( let item in data ){
+      
+      // add the openning table row tag
+      $('#resultTableBody').append(
+        "<tr>" 
+      );
+        
+      // add all the data one by one
+      for( let info in data[item] ){
+        $('#resultTableBody').append(
+          "<td>" + data[item][info] + "</td>"
+        );
+      }
+
+      // add the closing table row tag
+      $('#resultTableBody').append(
+        "</tr>"
+      );
+    }     
+  } else {
+    // display no data on the table
+    
+  }
 }
 
 
@@ -1198,7 +1239,7 @@ $('#displayAllRoutesFromFile').submit(async function(e){
   var dropDownName = $('#allRoutesFromFileSelector').val();
 
   if( sort == 'name' ){
-    sortyKeyWord = 'route_name'
+    sortKeyWord = 'route_name'
   } else {
     sortKeyWord = 'route_len'
   }
@@ -1224,6 +1265,8 @@ $('#displayAllRoutesFromFile').submit(async function(e){
           " WHERE gpx_id = " + gpx_id + 
           " order by " + sortKeyWord;
   
+          console.log(allRoutesFromFile);
+
           // execute and display results
           routeData = await executeQuery(allRoutesFromFile);
   
@@ -1356,13 +1399,20 @@ $('#displayNRoutesFromFile').submit( async function(e){
 
   // get the sort
   var sort = $('input[name=sort]:checked', '#displayNRoutesFromFile').val();
+  var order = $('input[name=order]:checked', '#displayNRoutesFromFile').val();
 
-  if(sort == 'short'){
+  if(order == 'short'){
     var sortKeyWord = 'ASC'
   } else {
     var sortKeyWord = 'DESC'
   }
   
+  if(sort == 'name'){
+    var sortKeyWord2 = 'route_name'
+  } else {
+    var sortKeyWord2 = 'route_len'
+  }
+
   // get the number of routes
   var numberOfRoutes = $('#numberOfRoutes').val();
 
@@ -1392,7 +1442,7 @@ $('#displayNRoutesFromFile').submit( async function(e){
         // make the query
         var allRoutesFromFile = "SELECT route_id, route_name, route_len, file_name FROM ROUTE, FILE "+
         " WHERE FILE.gpx_id=ROUTE.gpx_id AND FILE.file_name = '" + fileName + "' " +
-        " ORDER BY route_len " + sortKeyWord; 
+        " ORDER BY route_len, " + sortKeyWord2; 
 
         // execute and display results
         routeData = await executeQuery(allRoutesFromFile);
@@ -1404,7 +1454,7 @@ $('#displayNRoutesFromFile').submit( async function(e){
 
         var someRoutesFromFile = "SELECT route_id, route_name, route_len, file_name FROM ROUTE, FILE "+
         " WHERE FILE.gpx_id=ROUTE.gpx_id AND FILE.file_name = '" + fileName + "' " +
-        " ORDER BY route_len " + sortKeyWord  +
+        " ORDER BY route_len " + sortKeyWord  + ", " + sortKeyWord2 +
         " LIMIT " + n;
 
         routeData = await executeQuery(someRoutesFromFile);
