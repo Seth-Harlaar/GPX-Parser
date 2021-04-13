@@ -59,11 +59,13 @@
   <hr class="mt-5"/>
 
   <!-- GPX View Panel -->
-  <h4 class="mt-5">GPX View Panel</h4>  
-
-  <select class="form-select mt-4" id="gpxViewPanelSelector" aria-label="Default select example">
-    <option selected>Select a File</option>
-  </select>
+  <h4 class="mt-5">GPX View Panel</h4> 
+  <div class="w-25 p-3">
+    <select class="form-select mt-4 custom-select" id="gpxViewPanelSelector" aria-label="Default select example">
+      <option selected>Select a File</option>
+    </select>
+  </div> 
+  
 
   <div class="table-responsive overflow-auto h-50 mt-3">
     <table class="table table-hover">
@@ -199,6 +201,9 @@
 
 
 
+
+
+
   <!-- A4 fuctionality -->
   <h3 class="mt-5"> A4 Functionality<div id="logStatus">Currently: Logged Out</div></h3>  
 
@@ -212,10 +217,243 @@
     </div>
     <button type="submit" class="btn btn-info mt-3"> Login </button>
   </form>
-  <button class="btn btn-info mt-3" id="logoutButton" > Logout </button>
-  <button class="btn btn-info mt-3" id="clearDataButton" > Clear All Data </button>
-  <button class="btn btn-info mt-3" id="statusButton" > Get Status </button>
+  
+  <h3 class="mt-5">Actions</h3>
 
+  <button class="btn btn-info mt-3" id="statusButton" > Get Status </button>
+  <button class="btn btn-info mt-3" id="clearDataButton" > Clear All Data </button>
+  <button class="btn btn-info mt-3" id="logoutButton" > Logout </button>
+
+
+
+
+
+  <!-- Queries -->
+  <h3 class="mt-5">Queries</h3>
+
+  <!-- Display all routes -->
+  
+  <h4 class="mt-4">1. Display all routes</h4>
+  <form id="displayAllRoutes">
+    
+    <h5>Sort by:</h5>
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="radio" name="sort" id="exampleRadios1" value="name" checked>
+      <label class="form-check-label" for="exampleRadios1">
+        Name
+      </label>
+    </div>
+    
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="radio" name="sort" id="exampleRadios2" value="length">
+      <label class="form-check-label" for="exampleRadios2">
+        Length
+      </label>
+    </div>
+
+    <div>
+      <button class="btn btn-info mt-3" type="submit" > Display routes </button>
+    </div>
+  </form>
+
+
+
+  <!-- Display all routes from given file -->
+  <h4 class="mt-4">2. Display all routes from selected file</h4>
+  <form id="displayAllRoutesFromFile">
+
+    <h5>Sort by:</h5>
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="radio" name="sort" id="exampleRadios1" value="name" checked>
+      <label class="form-check-label" for="exampleRadios1">
+        Name
+      </label>
+    </div>
+
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="radio" name="sort" id="exampleRadios2" value="length">
+      <label class="form-check-label" for="exampleRadios2">
+        Length
+      </label>
+    </div>
+
+    <div>
+      <select class="form-select mt-4 fileSelector" id="allRoutesFromFileSelector" aria-label="Default select example">
+        <option selected>Select a File</option>
+      </select>
+    </div>
+
+    <div>
+      <button class="btn btn-info mt-3" type="submit" > Display routes </button>
+    </div>
+  </form>
+
+
+  <!-- Display all points of a specific route -->
+  <h4 class="mt-3">3. Display all points from selected route</h4>
+  <form id="displayAllPointsFromRoute">
+
+    <div>
+      <select class="form-select mt-4 fileSelector" id="allPointsFromRouteFileSelector" aria-label="Default select example">
+        <option selected>Select a File</option>
+      </select>
+    </div>
+
+    <div>
+      <select class="form-select mt-4" id="allPointsFromRoute" class="routeSelector" aria-label="Default select example">
+        <option selected>Select a Route</option>
+      </select>
+    </div>
+    
+    <div>
+      <button class="btn btn-info mt-3" id="allPointsFromRoute" > Display points </button>  
+    </div>
+
+  </form>
+
+  
+
+  <!-- Display all points form a specific file -->
+  <h4 class="mt-3">4. Display all points from selected file</h4>
+  <form id="displayAllPointsFromFile">
+
+    <h5>Sort by:</h5>
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="radio" name="sort" id="exampleRadios1" value="name" checked>
+      <label class="form-check-label" for="exampleRadios1">
+        Name
+      </label>
+    </div>
+
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="radio" name="sort" id="exampleRadios2" value="length">
+      <label class="form-check-label" for="exampleRadios2">
+        Length
+      </label>
+    </div>
+
+    <div>
+      <select class="form-select mt-4 fileSelector" id="allPointsFromFileSelector" aria-label="Default select example">
+        <option selected>Select a File</option>
+      </select>
+    </div>
+
+    <div>
+      <button class="btn btn-info mt-3" > Display points </button>
+    </div>
+  </form>
+
+
+
+  <!-- Display N shortest/longest routes from a specific file -->
+  <h4 class="mt-3">5. Display N shortest/longest routes from selected file</h4>
+  <form id="displayNRoutesFromFile">
+
+    <h5>Sort by:</h5>
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="radio" name="sort" id="exampleRadios1" value="short" checked>
+      <label class="form-check-label" for="exampleRadios1">
+        Shortest
+      </label>
+    </div>
+
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="radio" name="sort" id="exampleRadios2" value="long">
+      <label class="form-check-label" for="exampleRadios2">
+        Longest
+      </label>
+    </div>
+
+    <div class="form-group">
+      <input type="text" placeholder="Numer of routes to display ('all' for all of them)" class="form-control" id="numberOfRoutes">
+    </div>
+
+    <div>
+      <select class="form-select mt-4 fileSelector" id="NRoutesFileSelector" aria-label="Default select example">
+        <option selected>Select a File</option>
+      </select>
+    </div>
+
+    <div>
+      <button class="btn btn-info mt-3" > Display routes </button>
+    </div>
+  </form>
+
+
+  <!-- BULL
+
+
+  <form class="mt-5">
+    <h3>Queries</h3>
+
+    <fieldset class="form-group">
+      <div class="row">
+        <legend class="col-form-label col-sm-2 pt-0">Sort by:</legend>
+        <div class="col-sm-10">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="items" id="gridRadios1" value="option1" checked>
+            <label class="form-check-label" for="gridRadios1">
+              Routes
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="items" id="gridRadios2" value="option2">
+            <label class="form-check-label" for="gridRadios2">
+              Points
+            </label>
+          </div>
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="form-group row">
+      <label for="inputPassword3" class="col-sm-2 col-form-label">Numer of items </label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control" id="inputPassword3" placeholder="# or 'all'">
+      </div>
+    </div>
+
+    <fieldset class="form-group">
+      <div class="row">
+        <legend class="col-form-label col-sm-2 pt-0">Sort by:</legend>
+        <div class="col-sm-10">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="sort" id="gridRadios3" value="option3" checked>
+            <label class="form-check-label" for="gridRadios1">
+              Name
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="sort" id="gridRadios4" value="option4">
+            <label class="form-check-label" for="gridRadios2">
+              Length
+            </label>
+          </div>
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="form-group row">
+      <div class="col-sm-2">Checkbox</div>
+      <div class="col-sm-10">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="gridCheck1">
+          <label class="form-check-label" for="gridCheck1">
+            Example checkbox
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group row">
+      <div class="col-sm-10">
+        <button type="submit" class="btn btn-info">Submit Query</button>
+      </div>
+    </div>
+
+  </form>
+  
+  -->
 
 
 

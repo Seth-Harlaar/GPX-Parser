@@ -15,12 +15,17 @@ function reloadFiles(){
       $('#filePanelBody').empty();
       $('#gpxViewPanelSelector').empty();
       $('#addRouteSelector').empty();
+      $('.fileSelector').empty();
       
       $('#gpxViewPanelSelector').append(
         '<option selected>Select a File</option>'
       );
 
       $('#addRouteSelector').append(
+        '<option selected>Select a File</option>'
+      );
+
+      $('.fileSelector').append(
         '<option selected>Select a File</option>'
       );
 
@@ -37,7 +42,6 @@ function reloadFiles(){
 
       // for each gpxFile data returned
       for( let gpxFile in data.gpxFilesObject ){
-
 
         // add all the files to the file log panel
         $('#filePanelBody').append(
@@ -60,6 +64,10 @@ function reloadFiles(){
         $('#addRouteSelector').append(
           "<option value='" + gpxFile + "'>" + gpxFile + "</option>"
         ); 
+
+        $('.fileSelector').append(
+          "<option value='" + gpxFile + "'>" + gpxFile + "</option>"
+        ); 
         
         console.log( gpxFile );
       }
@@ -72,6 +80,38 @@ function reloadFiles(){
   });
 }
 
+function reloadRoutes(fileName){
+  // get each routes info
+  $.ajax({
+    type: 'get',
+    dataType: 'json',
+    url: '/getRoutes',
+    data: {
+      name: fileName
+    },
+
+    success: function(data){
+      $('#allPointsFromRoute').empty();
+
+      if(data.gpxRoutesObject.length != 0){
+        $('#allPointsFromRoute').append(
+          "<option>Select a Route</option>"
+        );
+      } else {
+        $('#allPointsFromRoute').append(
+          "<option>No Routes for File</option>"
+        );
+      }
+      
+
+      for(let route in data.gpxRoutesObject){
+        $('#allPointsFromRoute').append(
+          "<option value='" + data.gpxRoutesObject[route].name + "'>" + data.gpxRoutesObject[route].name + "</option>"
+        );
+      }
+    }
+  });
+}
 
 
 function reloadViewPanel(){
@@ -861,7 +901,7 @@ async function saveRoutes( fileName, gpx_id ){
   });
 }
 
-// overload on saveRoutes
+// save only one route, the new one
 async function saveNewRoute( fileName, newRouteName ){
   // get the gpx_id, then do same as other saveRoutes
   $.ajax({
@@ -1074,4 +1114,306 @@ $(document).on('click', '#clearDataButton', async function(){
 $(document).on('click', '#statusButton', async function(){
   console.log('displaying status');
   await status();  
+});
+
+
+
+$('#allPointsFromRouteFileSelector').change(function(e){
+  var fileName = $('#allPointsFromRouteFileSelector').val();
+
+  reloadRoutes(fileName);
+});
+
+
+
+// query stuff
+
+// function to run the query
+async function executeQuery( queryString ){
+  var rowData;
+
+  // if it not empty
+  if( queryString ){
+    await $.ajax({
+      type: 'get', 
+      dataType: 'json',
+      url: '/execute',
+      data: {
+        queryString: queryString
+      }, 
+      
+      success: async function(data){
+        if(data.success == true){
+          rowData = data.rowData;
+        }
+      }
+    })
+  } 
+  return rowData;
+}
+
+// function to display the result in table
+function displayResults(queryData){
+  console.log(queryData);
+}
+
+
+
+
+// listeners for the queries
+
+// query 1
+$('#displayAllRoutes').submit( async function(e){
+  e.preventDefault();
+
+  var sortKeyWord;
+
+  // get the form info
+  var sort = $('input[name=sort]:checked', '#displayAllRoutes').val();
+
+  // make query
+  if( sort == 'name' ){
+    sortKeyWord = 'route_name'
+  } else {
+    sortKeyWord = 'route_len'
+  }
+
+  var allRoutes = "SELECT * FROM ROUTE " +
+  "ORDER BY " + sortKeyWord;
+
+  allRouteData = await executeQuery(allRoutes);
+
+  displayResults(allRouteData);
+});
+
+
+// query 2
+$('#displayAllRoutesFromFile').submit(async function(e){
+  e.preventDefault();
+
+  var sortKeyWord;
+
+  var sort = $('input[name=sort]:checked', '#displayAllRoutesFromFile').val();
+
+  var dropDownName = $('#allRoutesFromFileSelector').val();
+
+  if( sort == 'name' ){
+    sortyKeyWord = 'route_name'
+  } else {
+    sortKeyWord = 'route_len'
+  }
+
+  if( dropDownName == 'Select a File'){
+    alert('Please select a file first');
+  } else {
+    // get the gpx_id first
+    $.ajax({
+      type: 'get',
+      dataType: 'json',
+      url: '/getGPXID',
+      data: {
+        fileName: dropDownName
+      }, 
+  
+      success: async function(data){
+        var gpx_id = data.gpx_id;
+  
+        if( gpx_id != 0 ){
+          // make the query
+          var allRoutesFromFile = "SELECT * FROM ROUTE "+
+          " WHERE gpx_id = " + gpx_id + 
+          " order by " + sortKeyWord;
+  
+          // execute and display results
+          routeData = await executeQuery(allRoutesFromFile);
+  
+          displayResults(routeData);
+        }
+  
+      }
+    })
+  }
+});
+
+
+// query 3
+$('#displayAllPointsFromRoute').submit( async function(e){
+  e.preventDefault();
+
+  var gpx_id;
+  var route_id;
+
+  // get the route name
+  var routeName = $('#allPointsFromRoute').val();
+  
+  // get the file name
+  var fileName = $('#allPointsFromRouteFileSelector').val();
+
+  // find gpx_id and route_id
+  if(routeName != 'Select a Route' && routeName != 'No Routes for File'){
+    await $.ajax({
+      type: 'get',
+      dataType: 'json',
+      url: '/getGPXID',
+      data: {
+        fileName: fileName
+      }, 
+  
+      success: async function(data){
+        if( data.gpx_id != 0 ){
+          gpx_id = data.gpx_id;
+  
+          await $.ajax({
+            type: 'get',
+            dataType: 'json',
+            url: '/getRouteID',
+            data: {
+              gpx_id: gpx_id,
+              routeName: routeName
+            }, 
+            
+            success: async function(data){
+              if( data.route_id != 0 ){
+                var route_id = data.route_id;
+  
+                // make query out of the info
+                var getPoints = "SELECT * FROM POINT " +
+                " WHERE route_id = " + route_id;
+  
+                var pointData = await executeQuery(getPoints);
+  
+                displayResults(pointData);
+              }
+            }
+          })
+        }
+      }
+    })
+  } else {
+    alert('Please select a route first');
+  }
+});
+
+
+// query 4
+$('#displayAllPointsFromFile').submit(async function(e){
+  e.preventDefault();
+  
+  var gpx_id;
+
+  // get radio value
+  var sort = $('input[name=sort]:checked', '#displayAllPointsFromFile').val();
+
+  if(sort == 'name'){
+    var sortKeyWord = 'route_name'
+  } else {
+    var sortKeyWord = 'route_len'
+  }
+
+  // get selected file
+  var fileName = $('#allPointsFromFileSelector').val();
+
+  if( fileName != 'Select a File' ){
+
+    // get the gpx_id
+    await $.ajax({
+      type: 'get',
+      dataType: 'json',
+      url: '/getGPXID',
+      data: {
+        fileName: fileName
+      }, 
+
+      success: async function(data){
+        if(data.gpx_id != 0){
+          gpx_id = data.gpx_id;
+
+          // make query
+          var getPoints = "SELECT DISTINCT point_id, latitude, longitude, point_index, route_name, route_len " +
+          " FROM FILE, ROUTE, POINT " +
+          " WHERE (FILE.file_name = '" + fileName + "' and FILE.gpx_id=ROUTE.gpx_id and ROUTE.route_id=POINT.route_id) " +
+          " order by " + sortKeyWord + ", POINT.route_id, point_index ";
+
+          let pointData = await executeQuery(getPoints);
+        
+          displayResults(pointData);
+        }
+      }
+    })
+
+  } else {
+    alert('Please select a file first')
+  }
+});
+
+
+// query 5
+$('#displayNRoutesFromFile').submit( async function(e){
+  e.preventDefault();
+
+  var all = false;
+  var ex = true;
+
+  // get the sort
+  var sort = $('input[name=sort]:checked', '#displayNRoutesFromFile').val();
+
+  if(sort == 'short'){
+    var sortKeyWord = 'ASC'
+  } else {
+    var sortKeyWord = 'DESC'
+  }
+  
+  // get the number of routes
+  var numberOfRoutes = $('#numberOfRoutes').val();
+
+
+  // get the filename
+  var fileName = $('#NRoutesFileSelector').val();
+
+  // check if n is 'all' or a number
+  if(numberOfRoutes != 'all'){
+    // get the int value if its not all
+    var n = parseInt(numberOfRoutes);
+    // check for positive integer
+    if( n < 1 || isNaN(numberOfRoutes)){
+      alert('Please Enter an integer greator than 0 or "all" to display all the routes');
+      ex = false;
+    }
+  } else {
+    all = true;
+  }
+
+  // check if should execute or not based on the input
+  if(ex){
+    if(fileName != 'Select a File'){
+
+      // select all the records
+      if(all){
+        // make the query
+        var allRoutesFromFile = "SELECT route_id, route_name, route_len, file_name FROM ROUTE, FILE "+
+        " WHERE FILE.gpx_id=ROUTE.gpx_id AND FILE.file_name = '" + fileName + "' " +
+        " ORDER BY route_len " + sortKeyWord; 
+
+        // execute and display results
+        routeData = await executeQuery(allRoutesFromFile);
+
+        displayResults(routeData);
+
+      // select a certian number of them
+      } else {
+
+        var someRoutesFromFile = "SELECT route_id, route_name, route_len, file_name FROM ROUTE, FILE "+
+        " WHERE FILE.gpx_id=ROUTE.gpx_id AND FILE.file_name = '" + fileName + "' " +
+        " ORDER BY route_len " + sortKeyWord  +
+        " LIMIT " + n;
+
+        routeData = await executeQuery(someRoutesFromFile);
+
+        displayResults(routeData);
+      }
+
+    } else {
+      alert('Please select a file first');
+    }
+  }
 });

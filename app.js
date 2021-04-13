@@ -891,3 +891,62 @@ app.get('/getGPXID', async function(req, res){
     }
   }
 });
+
+
+app.get('/getRouteID', async function(req, res){
+  console.log('getting route id');
+  
+  let rows;
+  let fields;
+  
+  var success = true;
+  
+  var route_id = 0;
+  var gpx_id = req.query.gpx_id;
+  var routeName = req.query.routeName;
+
+  var findRouteID = "SELECT route_id FROM ROUTE " +
+  " WHERE gpx_id = " + gpx_id + " AND route_name = '" + routeName + "'";
+
+  console.log(findRouteID);
+
+  if(globalConnected){
+    
+    try{
+      [rows, fields] = await globalConnection.execute(findRouteID);
+
+      route_id = rows[0]['route_id'];
+      
+    } catch(e){
+      console.log('Error getting route id ' + e);
+    } finally {
+      res.send({
+        route_id: route_id
+      })
+    }
+  }
+});
+
+app.get('/execute', async function(req, res){
+  var success = true;
+  let rows;
+  let fields;
+  var queryString = req.query.queryString;
+
+  if( globalConnected ){
+    console.log('Executing query: \n' + queryString );
+
+    try{
+      [rows, fields] = await globalConnection.execute(queryString);
+
+    } catch(e){
+      console.log('Failed to execute query ' + e);
+      success = false;
+    } finally{
+      res.send({
+        success: success,
+        rowData: rows
+      })
+    }
+  }
+});
