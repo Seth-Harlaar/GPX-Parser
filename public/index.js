@@ -375,7 +375,12 @@ jQuery(document).ready(function() {
   });
 
 
-
+  // listener for name on file input -- taken from w3schools here:
+  // https://www.w3schools.com/bootstrap4/bootstrap_forms_custom.asp
+  $(".custom-file-input").on("change", function() {
+    var fileName = $(this).val().split("\\").pop();
+    $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+  });
 
   // listener for making new gpx file
 
@@ -1194,7 +1199,9 @@ function displayResults(data){
     }     
   } else {
     // display no data on the table
-    
+    $('#resultTableColHeaders').append(
+      "<th scope='col'> No Results </th>"  
+    );
   }
 }
 
