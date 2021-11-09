@@ -32,7 +32,7 @@ $(BIN)LinkedListAPI.o: $(SRC)LinkedListAPI.c $(INC)LinkedListAPI.h
 	$(CC) $(CFLAGS) -c -fpic -I$(INC) $(SRC)LinkedListAPI.c -o $(BIN)LinkedListAPI.o
 
 clean:
-	rm -rf $(BIN)StructListDemo $(BIN)xmlExample $(BIN)*.o $(BIN)*.so
+	rm -rf $(BIN)StructListDemo $(BIN)xmlExample $(BIN)*.o $(BIN)*.so $(BIN)mainTest mainTest
 
 #This is the target for the in-class XML example
 xmlExample: $(SRC)libXmlExample.c
@@ -48,3 +48,5 @@ $(BIN)StructListDemo.o: $(SRC)StructListDemo.c
 	$(CC) $(CFLAGS) -I$(INC) -c $(SRC)StructListDemo.c -o $(BIN)StructListDemo.o
 
 ###################################################################################################
+test: $(SRC)mainTest.c $(BIN)libgpxparser.so $(BIN)liblist.so
+	$(CC) $(CFLAGS) -I$(XML_PATH) -I$(INC) $(SRC)mainTest.c -lxml2 -o mainTest $(BIN)GPXParser.o $(BIN)GPXhelpers.o $(BIN)LinkedListAPI.o -lm
