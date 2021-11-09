@@ -10,9 +10,12 @@
  * copy: see Copyright for the status of this software.
  */
 #include <stdio.h>
+#include <string.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
-
+/*
+ This is my change to the libxmlexample.c file to see if my changes show up in the correct branch 
+*/
 /*
  *To compile this file using gcc you can type.  Alternatively, see the Makefile for include path settings
  *gcc `xml2-config --cflags --libs` -o xmlexample libxml2-example.c
@@ -36,10 +39,9 @@ print_element_names(xmlNode * a_node)
         }
 
         // Uncomment the code below if you want to see the content of every node.
-
-        // if (cur_node->content != NULL ){
-        //     printf("  content: %s\n", cur_node->content);
-        // }
+        if(cur_node->content != NULL ){
+           printf("  content: %s\n", cur_node->content);
+        }
 
         // Iterate through every attribute of the current node
         xmlAttr *attr;
