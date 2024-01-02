@@ -9,7 +9,7 @@ Tech stack:
 - Express.js
 - MySQL
 
-This application was a semester long project that I developed during my CIS*2750 course at the University of Guelph during my Computer Engineering degree. 
+This application was a semester long project that I developed during my completion of the CIS*2750 course at the University of Guelph during my Computer Engineering degree. 
 
 ## Directory Explanation
 The branches of GPX-Parser represent each stage of the application developement. The application was developed in 4 stages, each making up one assignment for the course.
